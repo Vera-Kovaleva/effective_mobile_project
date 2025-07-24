@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=http://json-schema.org/draft-07/schema#
+dir: internal/generated/mocks
+pkgname: mocks
+all: true
+packages:
+  effective_mobile_project/internal/domain:
+    config:
+      recursive: true
+      filename: domain.go
