@@ -22,23 +22,23 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
-// Error defines model for Error.
-type Error struct {
-	Error *string `json:"error,omitempty"`
+// MessageResponse defines model for MessageResponse.
+type MessageResponse struct {
+	Message string `json:"message"`
 }
 
 // Subscription defines model for Subscription.
 type Subscription struct {
-	Cost      int                 `json:"cost"`
-	DateEnd   *openapi_types.Date `json:"dateEnd,omitempty"`
-	DateStart openapi_types.Date  `json:"dateStart"`
-	Id        openapi_types.UUID  `json:"id"`
-	Name      string              `json:"name"`
+	Cost      int                `json:"cost"`
+	DateEnd   *string            `json:"dateEnd,omitempty"`
+	DateStart string             `json:"dateStart"`
+	Id        openapi_types.UUID `json:"id"`
+	Name      string             `json:"name"`
 }
 
 // TotalCostResponse defines model for TotalCostResponse.
 type TotalCostResponse struct {
-	TotalCost *int `json:"totalCost,omitempty"`
+	TotalCost int `json:"totalCost"`
 }
 
 // DeleteSubscriptionsParams defines parameters for DeleteSubscriptions.
@@ -60,8 +60,8 @@ type GetSubscriptionsParams struct {
 type GetSubscriptionsTotalCostParams struct {
 	Id        *openapi_types.UUID `form:"id,omitempty" json:"id,omitempty"`
 	Name      *string             `form:"name,omitempty" json:"name,omitempty"`
-	StartDate openapi_types.Date  `form:"startDate" json:"startDate"`
-	EndDate   openapi_types.Date  `form:"endDate" json:"endDate"`
+	StartDate string              `form:"startDate" json:"startDate"`
+	EndDate   string              `form:"endDate" json:"endDate"`
 }
 
 // PostSubscriptionsJSONRequestBody defines body for PostSubscriptions for application/json ContentType.
@@ -290,9 +290,7 @@ type DeleteSubscriptionsResponseObject interface {
 	VisitDeleteSubscriptionsResponse(w http.ResponseWriter) error
 }
 
-type DeleteSubscriptions200JSONResponse struct {
-	Message *string `json:"message,omitempty"`
-}
+type DeleteSubscriptions200JSONResponse MessageResponse
 
 func (response DeleteSubscriptions200JSONResponse) VisitDeleteSubscriptionsResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
@@ -301,7 +299,7 @@ func (response DeleteSubscriptions200JSONResponse) VisitDeleteSubscriptionsRespo
 	return json.NewEncoder(w).Encode(response)
 }
 
-type DeleteSubscriptions400JSONResponse Error
+type DeleteSubscriptions400JSONResponse MessageResponse
 
 func (response DeleteSubscriptions400JSONResponse) VisitDeleteSubscriptionsResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
@@ -327,7 +325,7 @@ func (response GetSubscriptions200JSONResponse) VisitGetSubscriptionsResponse(w 
 	return json.NewEncoder(w).Encode(response)
 }
 
-type GetSubscriptions400JSONResponse Error
+type GetSubscriptions400JSONResponse MessageResponse
 
 func (response GetSubscriptions400JSONResponse) VisitGetSubscriptionsResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
@@ -344,7 +342,7 @@ type PostSubscriptionsResponseObject interface {
 	VisitPostSubscriptionsResponse(w http.ResponseWriter) error
 }
 
-type PostSubscriptions201JSONResponse Subscription
+type PostSubscriptions201JSONResponse MessageResponse
 
 func (response PostSubscriptions201JSONResponse) VisitPostSubscriptionsResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
@@ -353,7 +351,7 @@ func (response PostSubscriptions201JSONResponse) VisitPostSubscriptionsResponse(
 	return json.NewEncoder(w).Encode(response)
 }
 
-type PostSubscriptions400JSONResponse Error
+type PostSubscriptions400JSONResponse MessageResponse
 
 func (response PostSubscriptions400JSONResponse) VisitPostSubscriptionsResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
@@ -370,7 +368,7 @@ type PutSubscriptionsResponseObject interface {
 	VisitPutSubscriptionsResponse(w http.ResponseWriter) error
 }
 
-type PutSubscriptions200JSONResponse Subscription
+type PutSubscriptions200JSONResponse MessageResponse
 
 func (response PutSubscriptions200JSONResponse) VisitPutSubscriptionsResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
@@ -379,7 +377,7 @@ func (response PutSubscriptions200JSONResponse) VisitPutSubscriptionsResponse(w 
 	return json.NewEncoder(w).Encode(response)
 }
 
-type PutSubscriptions400JSONResponse Error
+type PutSubscriptions400JSONResponse MessageResponse
 
 func (response PutSubscriptions400JSONResponse) VisitPutSubscriptionsResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
@@ -405,7 +403,7 @@ func (response GetSubscriptionsTotalCost200JSONResponse) VisitGetSubscriptionsTo
 	return json.NewEncoder(w).Encode(response)
 }
 
-type GetSubscriptionsTotalCost400JSONResponse Error
+type GetSubscriptionsTotalCost400JSONResponse MessageResponse
 
 func (response GetSubscriptionsTotalCost400JSONResponse) VisitGetSubscriptionsTotalCostResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
@@ -595,20 +593,20 @@ func (sh *strictHandler) GetSubscriptionsTotalCost(ctx *gin.Context, params GetS
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"H4sIAAAAAAAC/9RX207zRhB+lWjbS/dPftqqki9bqoqLSlXpHaBqsYdgGh/YXaNGyBIJF1wUCfUBKEJ9",
+	"ATdKlBRCeIXZN6pmnYNjOyqiUMJdtP52Dt98OzM5ZU7oR2EAgZLMPmXSOQSfm5/fg5S8CT+CjMJAAh1F",
+	"IoxAKA8MwM8A9FO1I2A2k0p4QZMlicUEHMeeAJfZO3PgnjUDhvtH4CiWWGw73peO8CLlhUHZhRNKlbPv",
+	"BQqaIOieyxV8G7j0EX7lftSi7y5XvHYQCp+r2i5rfPXZRmPjy13GrGKA2f1txYV6tgXPOM+wzGZx7LlV",
+	"sID7T6DIoKwsX2M6H2EVbz+Fire+CaVaXR81g1QxWPC/wJadEdYLDkIy40KuWgxvcaDPsIcj3alhH+/1",
+	"VU2f46M+wxR7eI8DfMCRvqrhI06wj48ExDtMcYwjIstThvV97vwCgVuTIE48h4g4ASEzHx8/ND40KOMw",
+	"goBHHrPZ5+bIYhFXhybTusypSGZxtkAZTogRTudbLrPZpjnfXoKTIcF9UCAks3eKSW5tZuHf60sc4gR7",
+	"mOouDihZKhVBjmMQbTardVa+7CU9QSKJVaL1GlMckiOiDwdF+kYr/E5FtPBc9LRHRc/kYljaaDSyVxYo",
+	"CIxMeBS1PMfwVT+S2ZNc2PtUwAGz2Sf1RdOoTztGvdgujGwKed0sq4C00sd0qpOUivzF/xzRNQ6wZ0T8",
+	"oH/Dv2s4xNTod6I75pHI2Pe5aBP2z1ywlVVJLNYEVRbdd6DWS3H/VQeeAl/+G/1LnT2ZB8GF4O3KWtxO",
+	"qZzg3TK384MqQtZcNDcm7HN9MZeN7uReQDFPSieatuxlEf0QypKKqIODVF+HbvvFCFgu2/KcUCKGpKSd",
+	"j2/bQ4i3oXma76CH3OaCNT3kwch5Qtcq2kkUVykhXlMhvO0wwQn+NaXznQyUPwoBVw+VxCrsN3WzrP08",
+	"242fNHLm62J59rzMBvOsfWTFPUlb7yZXwIqayxt7xtK+yiEE7qu4e819q/wHoHKm6nMc4xhTEiSmtJ93",
+	"dBcnOMIxSVJ39WXlEFr3mdrXHX2hf9ddSiifI7XSYo44qlgohtn4JZcj+kZhJf8EAAD//39HkRkQDwAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

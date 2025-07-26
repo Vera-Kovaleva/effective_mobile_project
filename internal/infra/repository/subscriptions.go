@@ -1,1 +1,78 @@
 package repository
+
+import (
+	"context"
+	"errors"
+	"time"
+
+	"ef_project/internal/domain"
+)
+
+var _ domain.SubscriptionsRepository = (*Subscription)(nil)
+
+var (
+	errSubscription          = errors.New("products repository error")
+	ErrCreateSubscription    = errors.Join(errSubscription, errors.New("create failed"))
+	ErrReadSubscription      = errors.Join(errSubscription, errors.New("read failed"))
+	ErrUpdateSubscription    = errors.Join(errSubscription, errors.New("update failed"))
+	ErrDeleteSubscription    = errors.Join(errSubscription, errors.New("delete failed"))
+	ErrTotalCostSubscription = errors.Join(errSubscription, errors.New("total cost failed"))
+)
+
+type Subscription struct{}
+
+func NewSubscription() *Subscription {
+	return &Subscription{}
+}
+
+func (s *Subscription) Create(ctx context.Context, connection domain.Connection, subscription domain.Subscription) error {
+	const query = ` insert into subscriptions
+	(service_name, month_cost, user_id, subs_start_date, subs_end_date)
+	values
+	($1, $2, $3, $4, $5)`
+
+	if _, err := connection.ExecContext(ctx, query, subscription.Name, subscription.Cost, subscription.UserID, subscription.StartDate, subscription.EndDate); err != nil {
+		return errors.Join(err, ErrCreateSubscription)
+	}
+
+	return nil
+}
+
+func (s *Subscription) ReadAllByUserID(ctx context.Context, connection domain.Connection, subscriptionID domain.SubscriptionUserID) ([]domain.Subscription, error) {
+	const query = `select service_name, month_cost, user_id, subs_start_date, subs_end_date from subscriptions where user_id=$1`
+	var allUserSubscriptions []domain.Subscription
+	if err := connection.SelectContext(ctx, &allUserSubscriptions, query, subscriptionID); err != nil {
+		return allUserSubscriptions, errors.Join(err, ErrReadSubscription)
+	}
+	return allUserSubscriptions, nil
+}
+
+func (s *Subscription) Update(ctx context.Context, connection domain.Connection, subscription domain.Subscription) error {
+	const query = `update subscriptions set month_cost = $3, subs_end_date=$4  
+	where service_name = $1 and user_id = $2 
+	and subs_start_date = (select subs_start_date from subscriptions
+	where user_id = $2 and service_name = $1 order by subs_start_date desc limit 1) `
+
+	if _, err := connection.ExecContext(ctx, query, subscription.Name, subscription.UserID, subscription.Cost, subscription.EndDate); err != nil {
+		return errors.Join(err, ErrUpdateSubscription)
+	}
+
+	return nil
+}
+
+func (s *Subscription) Delete(ctx context.Context, connection domain.Connection, subscriptionUserID domain.SubscriptionUserID, subscriptionName domain.ServiceName) error {
+	const query = ` delete from subscriptions where user_id = $1 and service_name = $2`
+	if _, err := connection.ExecContext(ctx, query, subscriptionUserID, subscriptionName); err != nil {
+		return errors.Join(err, ErrDeleteSubscription)
+	}
+	return nil
+}
+
+func (s *Subscription) AllMatchingSubscriptionsForPeriod(ctx context.Context, connection domain.Connection, subscriptionUserID domain.SubscriptionUserID, subscriptionName domain.ServiceName, start time.Time, end *time.Time) ([]int, error) {
+	const query = `select month_cost from subscriptions where (user_id = $1) and (service_name = $2) and (subs_start_date <= $3) and (subs_end_date IS NULL OR subs_end_date >= $4)`
+	var matchesSubscriptions []int
+	if err := connection.SelectContext(ctx, &matchesSubscriptions, query, subscriptionUserID, subscriptionName, start, end); err != nil {
+		return matchesSubscriptions, errors.Join(err, ErrTotalCostSubscription)
+	}
+	return matchesSubscriptions, nil
+}

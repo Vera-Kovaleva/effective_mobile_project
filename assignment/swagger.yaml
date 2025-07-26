@@ -6,11 +6,12 @@ info:
 
 components:
   schemas:
-    Error:
+    MessageResponse:
       type: object
       properties:
-        error:
+        message:
           type: string
+      required: [message]
 
     Subscription:
       type: object
@@ -24,12 +25,10 @@ components:
           format: uuid
         dateStart:
           type: string
-          format: date
-          example: "2025-07-01"
+          example: data format "07-2025"
         dateEnd:
           type: string
-          format: date
-          example: "2025-07-01"
+          example: data format "07-2025"
       required: [name, cost, id, dateStart]
 
     TotalCostResponse:
@@ -37,6 +36,7 @@ components:
       properties:
         totalCost:
           type: integer
+      required: [totalCost]
 
 paths:
   /subscriptions:
@@ -54,13 +54,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Subscription'
+                $ref: '#/components/schemas/MessageResponse'
         '400':
           description: Неверный запрос
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/MessageResponse'
 
     get:
       summary: Получение списка подписок
@@ -86,7 +86,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/MessageResponse'
 
     put:
       summary: Обновление подписки
@@ -102,13 +102,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Subscription'
+                $ref: '#/components/schemas/MessageResponse'
         '400':
           description: Неверный запрос
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/MessageResponse'
 
     delete:
       summary: Удаление подписки
@@ -132,16 +132,13 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
+                $ref: '#/components/schemas/MessageResponse'
         '400':
           description: Неверный запрос
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/MessageResponse'
                 
   /subscriptions/total_cost:
     get:
@@ -163,15 +160,13 @@ paths:
           required: true
           schema:
             type: string
-            format: date
-            example: "2025-07-01"
+            example: data format "07-2025"
         - name: endDate
           in: query
           required: true
           schema:
             type: string
-            format: date
-            example: "2025-07-01"
+            example: data format "07-2025"
 
       responses:
         '200':
@@ -185,4 +180,4 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/MessageResponse'

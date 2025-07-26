@@ -1,28 +1,10 @@
 services:
   db:
     image: postgres
-    profiles:
-      - prod
-      - dev
+    shm_size: 128mb
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "5432:5432"
+      - 5432:5432
     volumes:
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
-
-  server:
-    image: effective-mobile-project-server:latest
-    profiles:
-      - prod
-    environment:
-      GIN_MODE: ${GIN_MODE}
-      GRPC_ADDRESS: ${GRPC_ADDRESS}
-      HTTP_ADDRESS: ${HTTP_ADDRESS}
-      DB_CONNECTION: ${DB_CONNECTION}
-      TOKEN_SECRET: ${TOKEN_SECRET}
-    ports:
-      - "8080:8080"
-      - "3000:3000"
-    depends_on:
-      - db
+        - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql

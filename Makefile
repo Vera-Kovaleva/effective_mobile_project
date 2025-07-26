@@ -29,4 +29,3 @@ format:
 codegen:
 	@go tool oapi-codegen --config=.oapi-codegen.yaml assignment/swagger.yaml \
 	&& mockery --log-level="" && rm -rf internal/generated/mocks && mkdir internal/generated/mocks && mockery --log-level=""
-
