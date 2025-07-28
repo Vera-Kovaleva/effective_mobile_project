@@ -24,9 +24,8 @@ func NewServer(
 	}
 }
 
-// DeleteSubscriptions implements api.StrictServerInterface.
 func (s *Server) DeleteSubscriptions(ctx context.Context, request oapi.DeleteSubscriptionsRequestObject) (oapi.DeleteSubscriptionsResponseObject, error) {
-	err := s.subscriptions.Delete(ctx, *request.Params.Id, *request.Params.Name)
+	err := s.subscriptions.Delete(ctx, request.Params.Id, request.Params.Name)
 	if err != nil {
 		return oapi.DeleteSubscriptions400JSONResponse{
 			Message: "",
@@ -80,7 +79,6 @@ func (s *Server) GetSubscriptionsTotalCost(ctx context.Context, request oapi.Get
 	}, nil
 }
 
-// PostSubscriptions implements api.StrictServerInterface.
 func (s *Server) PostSubscriptions(ctx context.Context, request oapi.PostSubscriptionsRequestObject) (oapi.PostSubscriptionsResponseObject, error) {
 	startDate, err := time.Parse("01-2006", request.Body.DateStart)
 	if err != nil {
@@ -114,7 +112,6 @@ func (s *Server) PostSubscriptions(ctx context.Context, request oapi.PostSubscri
 	}, nil
 }
 
-// PutSubscriptions implements api.StrictServerInterface.
 func (s *Server) PutSubscriptions(ctx context.Context, request oapi.PutSubscriptionsRequestObject) (oapi.PutSubscriptionsResponseObject, error) {
 	startDate, err := time.Parse("01-2006", request.Body.DateStart)
 	if err != nil {

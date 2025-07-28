@@ -31,6 +31,13 @@ func NewSubscriptionService(provider ConnectionProvider, subscriptionRepo Subscr
 
 func (s *SubscriptionService) Create(ctx context.Context, subscription Subscription) error {
 	err := s.provider.ExecuteTx(ctx, func(ctx context.Context, c Connection) error {
+		latestEndDate, err := s.subscriptionRepo.GetLatest(ctx, c, subscription.UserID, subscription.Name)
+		if err != nil {
+			return errors.Join(err, ErrServiceCreateSubscription)
+		}
+		if latestEndDate != nil && (latestEndDate.After(subscription.StartDate) || latestEndDate.Equal(subscription.StartDate)) {
+			return errors.Join(errors.New("previous subscription has not ended"), ErrServiceCreateSubscription)
+		}
 		return s.subscriptionRepo.Create(ctx, c, subscription)
 	})
 	if err != nil {
@@ -39,27 +46,27 @@ func (s *SubscriptionService) Create(ctx context.Context, subscription Subscript
 	return nil
 }
 
-func (s *SubscriptionService) Delete(ctx context.Context, subscriptionUserID SubscriptionUserID, subscriptionName ServiceName) error {
-	err := s.provider.ExecuteTx(ctx, func(ctx context.Context, c Connection) error {
+func (s *SubscriptionService) Delete(ctx context.Context, subscriptionUserID UserID, subscriptionName ServiceName) error {
+	err := s.provider.Execute(ctx, func(ctx context.Context, c Connection) error {
 		return s.subscriptionRepo.Delete(ctx, c, subscriptionUserID, subscriptionName)
 	})
 	if err != nil {
-		return errors.Join(err, ErrServiceCreateSubscription)
+		return errors.Join(err, ErrServiceDeleteSubscription)
 	}
 	return nil
 }
 
 func (s *SubscriptionService) Update(ctx context.Context, subscription Subscription) error {
-	err := s.provider.ExecuteTx(ctx, func(ctx context.Context, c Connection) error {
+	err := s.provider.Execute(ctx, func(ctx context.Context, c Connection) error {
 		return s.subscriptionRepo.Update(ctx, c, subscription)
 	})
 	if err != nil {
-		return errors.Join(err, ErrServiceCreateSubscription)
+		return errors.Join(err, ErrServiceUpdateSubscription)
 	}
 	return nil
 }
 
-func (s *SubscriptionService) ReadAllByUserID(ctx context.Context, subscriptionUserID SubscriptionUserID) ([]Subscription, error) {
+func (s *SubscriptionService) ReadAllByUserID(ctx context.Context, subscriptionUserID UserID) ([]Subscription, error) {
 	var subscriptions []Subscription
 	var dbErr error
 	err := s.provider.Execute(ctx, func(ctx context.Context, c Connection) error {
@@ -67,12 +74,12 @@ func (s *SubscriptionService) ReadAllByUserID(ctx context.Context, subscriptionU
 		return dbErr
 	})
 	if err != nil {
-		return subscriptions, errors.Join(err, ErrServiceCreateSubscription)
+		return subscriptions, errors.Join(err, ErrServiceReadAllByUserIDList)
 	}
 	return subscriptions, nil
 }
 
-func (s *SubscriptionService) TotalSubscriptionsCost(ctx context.Context, subscriptionUserID SubscriptionUserID, subscriptionName ServiceName, start time.Time, end *time.Time) (int, error) {
+func (s *SubscriptionService) TotalSubscriptionsCost(ctx context.Context, subscriptionUserID UserID, subscriptionName ServiceName, start time.Time, end *time.Time) (int, error) {
 	var totalCosts []int
 	var dbErr error
 	err := s.provider.Execute(ctx, func(ctx context.Context, c Connection) error {
@@ -81,7 +88,7 @@ func (s *SubscriptionService) TotalSubscriptionsCost(ctx context.Context, subscr
 	})
 	totalCost := 0
 	if err != nil {
-		return totalCost, errors.Join(err, ErrServiceCreateSubscription)
+		return totalCost, errors.Join(err, ErrServiceTotalSubscriptionsCostList)
 	}
 	for _, curCost := range totalCosts {
 		totalCost += curCost

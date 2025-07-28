@@ -8,7 +8,8 @@ import (
 type SubscriptionsRepository interface {
 	Create(context.Context, Connection, Subscription) error
 	Update(context.Context, Connection, Subscription) error
-	Delete(context.Context, Connection, SubscriptionUserID, ServiceName) error
-	ReadAllByUserID(context.Context, Connection, SubscriptionUserID) ([]Subscription, error)
-	AllMatchingSubscriptionsForPeriod(context.Context, Connection, SubscriptionUserID, ServiceName, time.Time, *time.Time) ([]int, error)
+	Delete(context.Context, Connection, UserID, ServiceName) error
+	ReadAllByUserID(context.Context, Connection, UserID) ([]Subscription, error)
+	AllMatchingSubscriptionsForPeriod(context.Context, Connection, UserID, ServiceName, time.Time, *time.Time) ([]int, error)
+	GetLatest(context.Context, Connection, UserID, ServiceName) (*time.Time, error)
 }

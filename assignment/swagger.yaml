@@ -116,14 +116,14 @@ paths:
         - name: id
           in: query
           description: ID пользователя
-          required: false
+          required: true
           schema:
             type: string
             format: uuid
         - name: name
           in: query
           description: Название подписки
-          required: false
+          required: true
           schema:
             type: string
       responses:

@@ -3,20 +3,5 @@ CREATE TABLE IF NOT EXISTS subscriptions (
     month_cost INTEGER NOT NULL,
     user_id UUID NOT NULL,
     subs_start_date DATE NOT NULL DEFAULT CURRENT_DATE,
-    subs_end_date DATE,
-    is_active BOOLEAN NOT NULL DEFAULT TRUE
+    subs_end_date DATE
 );
-
-CREATE OR REPLACE FUNCTION update_is_active()
-RETURNS TRIGGER 
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    NEW.is_active := (NEW.subs_end_date IS NULL OR NEW.subs_end_date > CURRENT_DATE);
-    RETURN NEW;
-END;
-$$;
-
-CREATE TRIGGER trg_update_is_active BEFORE INSERT OR UPDATE ON subscriptions FOR EACH ROW EXECUTE FUNCTION update_is_active();
-
-CREATE UNIQUE INDEX subscription_in_progress_unique ON subscriptions (user_id, service_name) WHERE is_active;

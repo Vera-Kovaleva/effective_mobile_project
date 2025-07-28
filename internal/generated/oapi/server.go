@@ -44,10 +44,10 @@ type TotalCostResponse struct {
 // DeleteSubscriptionsParams defines parameters for DeleteSubscriptions.
 type DeleteSubscriptionsParams struct {
 	// Id ID пользователя
-	Id *openapi_types.UUID `form:"id,omitempty" json:"id,omitempty"`
+	Id openapi_types.UUID `form:"id" json:"id"`
 
 	// Name Название подписки
-	Name *string `form:"name,omitempty" json:"name,omitempty"`
+	Name string `form:"name" json:"name"`
 }
 
 // GetSubscriptionsParams defines parameters for GetSubscriptions.
@@ -106,17 +106,31 @@ func (siw *ServerInterfaceWrapper) DeleteSubscriptions(c *gin.Context) {
 	// Parameter object where we will unmarshal all parameters from the context
 	var params DeleteSubscriptionsParams
 
-	// ------------- Optional query parameter "id" -------------
+	// ------------- Required query parameter "id" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "id", c.Request.URL.Query(), &params.Id)
+	if paramValue := c.Query("id"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Query argument id is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "id", c.Request.URL.Query(), &params.Id)
 	if err != nil {
 		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
 		return
 	}
 
-	// ------------- Optional query parameter "name" -------------
+	// ------------- Required query parameter "name" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "name", c.Request.URL.Query(), &params.Name)
+	if paramValue := c.Query("name"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Query argument name is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "name", c.Request.URL.Query(), &params.Name)
 	if err != nil {
 		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter name: %w", err), http.StatusBadRequest)
 		return
@@ -593,20 +607,21 @@ func (sh *strictHandler) GetSubscriptionsTotalCost(ctx *gin.Context, params GetS
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"AAD//xtyi6MwDwAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

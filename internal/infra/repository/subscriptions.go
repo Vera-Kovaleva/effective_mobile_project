@@ -11,12 +11,13 @@ import (
 var _ domain.SubscriptionsRepository = (*Subscription)(nil)
 
 var (
-	errSubscription          = errors.New("products repository error")
+	errSubscription          = errors.New("subscription repository error")
 	ErrCreateSubscription    = errors.Join(errSubscription, errors.New("create failed"))
 	ErrReadSubscription      = errors.Join(errSubscription, errors.New("read failed"))
 	ErrUpdateSubscription    = errors.Join(errSubscription, errors.New("update failed"))
 	ErrDeleteSubscription    = errors.Join(errSubscription, errors.New("delete failed"))
 	ErrTotalCostSubscription = errors.Join(errSubscription, errors.New("total cost failed"))
+	ErrGetLatestSubscription = errors.Join(errSubscription, errors.New("get latest failed"))
 )
 
 type Subscription struct{}
@@ -38,7 +39,7 @@ func (s *Subscription) Create(ctx context.Context, connection domain.Connection,
 	return nil
 }
 
-func (s *Subscription) ReadAllByUserID(ctx context.Context, connection domain.Connection, subscriptionID domain.SubscriptionUserID) ([]domain.Subscription, error) {
+func (s *Subscription) ReadAllByUserID(ctx context.Context, connection domain.Connection, subscriptionID domain.UserID) ([]domain.Subscription, error) {
 	const query = `select service_name, month_cost, user_id, subs_start_date, subs_end_date from subscriptions where user_id=$1`
 	var allUserSubscriptions []domain.Subscription
 	if err := connection.SelectContext(ctx, &allUserSubscriptions, query, subscriptionID); err != nil {
@@ -60,19 +61,34 @@ func (s *Subscription) Update(ctx context.Context, connection domain.Connection,
 	return nil
 }
 
-func (s *Subscription) Delete(ctx context.Context, connection domain.Connection, subscriptionUserID domain.SubscriptionUserID, subscriptionName domain.ServiceName) error {
-	const query = ` delete from subscriptions where user_id = $1 and service_name = $2`
-	if _, err := connection.ExecContext(ctx, query, subscriptionUserID, subscriptionName); err != nil {
+func (s *Subscription) Delete(ctx context.Context, connection domain.Connection, subscriptionUserID domain.UserID, subscriptionName domain.ServiceName) error {
+	const query = ` delete from subscriptions where user_id = $1 and service_name = $2 
+	and subs_start_date = (select subs_start_date from subscriptions where user_id = $1 and service_name = $2 order by subs_start_date desc limit 1)`
+	rowsAffected, err := connection.ExecContext(ctx, query, subscriptionUserID, subscriptionName)
+	if err != nil {
 		return errors.Join(err, ErrDeleteSubscription)
+	}
+	if rowsAffected == 0 {
+		return errors.Join(errors.New("no subscription found to delete"), ErrDeleteSubscription)
 	}
 	return nil
 }
 
-func (s *Subscription) AllMatchingSubscriptionsForPeriod(ctx context.Context, connection domain.Connection, subscriptionUserID domain.SubscriptionUserID, subscriptionName domain.ServiceName, start time.Time, end *time.Time) ([]int, error) {
+func (s *Subscription) AllMatchingSubscriptionsForPeriod(ctx context.Context, connection domain.Connection, subscriptionUserID domain.UserID, subscriptionName domain.ServiceName, start time.Time, end *time.Time) ([]int, error) {
 	const query = `select month_cost from subscriptions where (user_id = $1) and (service_name = $2) and (subs_start_date <= $3) and (subs_end_date IS NULL OR subs_end_date >= $4)`
 	var matchesSubscriptions []int
-	if err := connection.SelectContext(ctx, &matchesSubscriptions, query, subscriptionUserID, subscriptionName, start, end); err != nil {
+	if err := connection.SelectContext(ctx, &matchesSubscriptions, query, subscriptionUserID, subscriptionName, end, start); err != nil {
 		return matchesSubscriptions, errors.Join(err, ErrTotalCostSubscription)
 	}
 	return matchesSubscriptions, nil
+}
+
+func (s *Subscription) GetLatest(ctx context.Context, connection domain.Connection, userID domain.UserID, serviseName domain.ServiceName) (*time.Time, error) {
+	const query = `select (subs_end_date) from subscriptions
+	where user_id = $1 and service_name = $2 order by subs_start_date desc limit 1`
+	var latestDate *time.Time
+	if err := connection.GetContext(ctx, &latestDate, query, userID, serviseName); err != nil {
+		return nil, nil
+	}
+	return latestDate, nil
 }

@@ -19,8 +19,8 @@ func TestSubscriptionIntegration(t *testing.T) {
 	defer func() { _ = provider.Close() }()
 
 	provider.ExecuteTx(ctx, func(ctx context.Context, connection domain.Connection) error {
-		userID1 := domain.SubscriptionUserID(uuid.New())
-		userID2 := domain.SubscriptionUserID(uuid.New())
+		userID1 := domain.UserID(uuid.New())
+		userID2 := domain.UserID(uuid.New())
 
 		serviseName1 := domain.ServiceName("servise name 1")
 		serviseName2 := domain.ServiceName("servise name 2")
@@ -65,7 +65,7 @@ func TestSubscriptionIntegration(t *testing.T) {
 	})
 }
 
-func fixtureCreateSubscription(t *testing.T, ctx context.Context, connection domain.Connection, userID domain.SubscriptionUserID, name domain.ServiceName) domain.Subscription {
+func fixtureCreateSubscription(t *testing.T, ctx context.Context, connection domain.Connection, userID domain.UserID, name domain.ServiceName) domain.Subscription {
 	subscription := domain.Subscription{
 		UserID:    userID,
 		Cost:      1,
