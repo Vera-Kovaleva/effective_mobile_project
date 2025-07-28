@@ -28,11 +28,11 @@ func (s *Server) DeleteSubscriptions(ctx context.Context, request oapi.DeleteSub
 	err := s.subscriptions.Delete(ctx, request.Params.Id, request.Params.Name)
 	if err != nil {
 		return oapi.DeleteSubscriptions400JSONResponse{
-			Message: "",
+			Message: "Неверный запрос",
 		}, nil
 	}
 	return oapi.DeleteSubscriptions200JSONResponse{
-		Message: "",
+		Message: "Подписка удалена",
 	}, nil
 }
 
@@ -42,7 +42,7 @@ func (s *Server) GetSubscriptions(ctx context.Context, request oapi.GetSubscript
 	subscriptionsByUserID, err := s.subscriptions.ReadAllByUserID(ctx, *request.Params.Id)
 	if err != nil {
 		return oapi.GetSubscriptions400JSONResponse{
-			Message: "",
+			Message: "Неверный запрос",
 		}, nil
 	}
 
@@ -108,7 +108,7 @@ func (s *Server) PostSubscriptions(ctx context.Context, request oapi.PostSubscri
 	}
 
 	return oapi.PostSubscriptions201JSONResponse{
-		Message: "",
+		Message: "Подписка создана",
 	}, nil
 }
 
@@ -136,6 +136,6 @@ func (s *Server) PutSubscriptions(ctx context.Context, request oapi.PutSubscript
 	})
 
 	return oapi.PutSubscriptions200JSONResponse{
-		Message: "",
+		Message: "Подписка обновлена",
 	}, nil
 }
