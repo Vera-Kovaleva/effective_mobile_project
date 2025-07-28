@@ -75,7 +75,7 @@ func (s *Subscription) Delete(ctx context.Context, connection domain.Connection,
 }
 
 func (s *Subscription) AllMatchingSubscriptionsForPeriod(ctx context.Context, connection domain.Connection, subscriptionUserID domain.UserID, subscriptionName domain.ServiceName, start time.Time, end *time.Time) ([]int, error) {
-	const query = `select month_cost from subscriptions where (user_id = $1) and (service_name = $2) and (subs_start_date <= $3) and (subs_end_date IS NULL OR subs_end_date >= $4)`
+	const query = `select month_cost from subscriptions where (user_id = $1) and (service_name = $2) and (subs_start_date < $3) and (subs_end_date IS NULL OR subs_end_date >= $4)`
 	var matchesSubscriptions []int
 	if err := connection.SelectContext(ctx, &matchesSubscriptions, query, subscriptionUserID, subscriptionName, end, start); err != nil {
 		return matchesSubscriptions, errors.Join(err, ErrTotalCostSubscription)

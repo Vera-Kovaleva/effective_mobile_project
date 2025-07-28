@@ -35,7 +35,7 @@ func (s *SubscriptionService) Create(ctx context.Context, subscription Subscript
 		if err != nil {
 			return errors.Join(err, ErrServiceCreateSubscription)
 		}
-		if latestEndDate != nil && (latestEndDate.After(subscription.StartDate) || latestEndDate.Equal(subscription.StartDate)) {
+		if latestEndDate != nil && (latestEndDate.After(subscription.StartDate)) {
 			return errors.Join(errors.New("previous subscription has not ended"), ErrServiceCreateSubscription)
 		}
 		return s.subscriptionRepo.Create(ctx, c, subscription)
