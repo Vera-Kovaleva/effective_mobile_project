@@ -10,6 +10,13 @@ type SubscriptionsRepository interface {
 	Update(context.Context, Connection, Subscription) error
 	Delete(context.Context, Connection, UserID, ServiceName) error
 	ReadAllByUserID(context.Context, Connection, UserID) ([]Subscription, error)
-	AllMatchingSubscriptionsForPeriod(context.Context, Connection, UserID, ServiceName, time.Time, *time.Time) ([]int, error)
+	AllMatchingSubscriptionsForPeriod(
+		context.Context,
+		Connection,
+		UserID,
+		ServiceName,
+		time.Time,
+		*time.Time,
+	) ([]int, error)
 	GetLatest(context.Context, Connection, UserID, ServiceName) (*time.Time, error)
 }

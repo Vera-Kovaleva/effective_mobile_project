@@ -9,15 +9,15 @@ import (
 )
 
 type (
-	UserID = uuid.UUID
-	ServiceName        = string
+	UserID      = uuid.UUID
+	ServiceName = string
 
 	Subscription struct {
-		Name      ServiceName        `json:"name" db:"service_name"`
-		Cost      int                `json:"cost" db:"month_cost"`
-		UserID    UserID `json:"id" db:"user_id"`
-		StartDate time.Time          `json:"start_date" db:"subs_start_date"`
-		EndDate   *time.Time         `json:"end_date,omitempty" db:"subs_end_date"`
+		Name      ServiceName `json:"name"               db:"service_name"`
+		Cost      int         `json:"cost"               db:"month_cost"`
+		UserID    UserID      `json:"id"                 db:"user_id"`
+		StartDate time.Time   `json:"start_date"         db:"subs_start_date"`
+		EndDate   *time.Time  `json:"end_date,omitempty" db:"subs_end_date"`
 	}
 
 	Connection interface {
@@ -36,7 +36,13 @@ type (
 		Update(context.Context, Subscription) error
 		Delete(context.Context, UserID, ServiceName) error
 		ReadAllByUserID(context.Context, UserID) ([]Subscription, error)
-		TotalSubscriptionsCost(context.Context, UserID, ServiceName, time.Time, *time.Time) (int, error)
+		TotalSubscriptionsCost(
+			context.Context,
+			UserID,
+			ServiceName,
+			time.Time,
+			*time.Time,
+		) (int, error)
 		io.Closer
 	}
 )

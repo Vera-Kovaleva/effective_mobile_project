@@ -69,13 +69,19 @@ func WithTransactionFactory(factory func(pgx.Tx) domain.Connection) PostgresProv
 	}
 }
 
-func (p *PostgresProvider) Execute(ctx context.Context, receiver func(context.Context, domain.Connection) error) error {
+func (p *PostgresProvider) Execute(
+	ctx context.Context,
+	receiver func(context.Context, domain.Connection) error,
+) error {
 	return p.acquire(ctx, func(ctx context.Context, c *pgxpool.Conn) error {
 		return receiver(ctx, p.connFactory(c))
 	})
 }
 
-func (p *PostgresProvider) ExecuteTx(ctx context.Context, receiver func(context.Context, domain.Connection) error) error {
+func (p *PostgresProvider) ExecuteTx(
+	ctx context.Context,
+	receiver func(context.Context, domain.Connection) error,
+) error {
 	return p.acquire(ctx, func(ctx context.Context, c *pgxpool.Conn) error {
 		tx, err := c.Begin(ctx)
 		if err != nil {
@@ -99,7 +105,10 @@ func (p *PostgresProvider) ExecuteTx(ctx context.Context, receiver func(context.
 	})
 }
 
-func (p *PostgresProvider) acquire(ctx context.Context, f func(context.Context, *pgxpool.Conn) error) error {
+func (p *PostgresProvider) acquire(
+	ctx context.Context,
+	f func(context.Context, *pgxpool.Conn) error,
+) error {
 	ctx = context.WithoutCancel(ctx)
 	conn, err := p.pool.Acquire(ctx)
 	if err != nil {
@@ -114,7 +123,11 @@ func NewPostgresConnection(connection *pgxpool.Conn) *PostgresConnection {
 	return &PostgresConnection{connection: connection}
 }
 
-func (p *PostgresConnection) ExecContext(ctx context.Context, query string, args ...any) (int64, error) {
+func (p *PostgresConnection) ExecContext(
+	ctx context.Context,
+	query string,
+	args ...any,
+) (int64, error) {
 	if cmdTag, err := p.connection.Exec(ctx, query, args...); err != nil {
 		return 0, err
 	} else {
@@ -122,11 +135,21 @@ func (p *PostgresConnection) ExecContext(ctx context.Context, query string, args
 	}
 }
 
-func (p *PostgresConnection) GetContext(ctx context.Context, dest any, query string, args ...any) error {
+func (p *PostgresConnection) GetContext(
+	ctx context.Context,
+	dest any,
+	query string,
+	args ...any,
+) error {
 	return pgxscan.Get(ctx, p.connection, dest, query, args...)
 }
 
-func (p *PostgresConnection) SelectContext(ctx context.Context, dest any, query string, args ...any) error {
+func (p *PostgresConnection) SelectContext(
+	ctx context.Context,
+	dest any,
+	query string,
+	args ...any,
+) error {
 	return pgxscan.Select(ctx, p.connection, dest, query, args...)
 }
 
@@ -134,7 +157,11 @@ func NewPostgresTransaction(transaction pgx.Tx) *PostgresTransaction {
 	return &PostgresTransaction{transaction: transaction}
 }
 
-func (p *PostgresTransaction) ExecContext(ctx context.Context, query string, args ...any) (int64, error) {
+func (p *PostgresTransaction) ExecContext(
+	ctx context.Context,
+	query string,
+	args ...any,
+) (int64, error) {
 	if cmdTag, err := p.transaction.Exec(ctx, query, args...); err != nil {
 		return 0, err
 	} else {
@@ -142,10 +169,20 @@ func (p *PostgresTransaction) ExecContext(ctx context.Context, query string, arg
 	}
 }
 
-func (p *PostgresTransaction) GetContext(ctx context.Context, dest any, query string, args ...any) error {
+func (p *PostgresTransaction) GetContext(
+	ctx context.Context,
+	dest any,
+	query string,
+	args ...any,
+) error {
 	return pgxscan.Get(ctx, p.transaction, dest, query, args...)
 }
 
-func (p *PostgresTransaction) SelectContext(ctx context.Context, dest any, query string, args ...any) error {
+func (p *PostgresTransaction) SelectContext(
+	ctx context.Context,
+	dest any,
+	query string,
+	args ...any,
+) error {
 	return pgxscan.Select(ctx, p.transaction, dest, query, args...)
 }

@@ -2,11 +2,12 @@ package repository_test
 
 import (
 	"context"
+	"testing"
+	"time"
+
 	"ef_project/internal/domain"
 	"ef_project/internal/infra/pointer"
 	"ef_project/internal/infra/repository"
-	"testing"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -52,12 +53,23 @@ func TestSubscriptionIntegration(t *testing.T) {
 		subscription1User2.EndDate = pointer.Ref(newEndDate)
 		err = repoSubscription.Update(ctx, connection, subscription1User2)
 
-		subscriptionsFromDBUser2, err = repoSubscription.ReadAllByUserID(ctx, connection, subscription1User2.UserID)
+		subscriptionsFromDBUser2, err = repoSubscription.ReadAllByUserID(
+			ctx,
+			connection,
+			subscription1User2.UserID,
+		)
 		require.NoError(t, err)
 		require.Equal(t, pointer.Ref(newEndDate), subscriptionsFromDBUser2[0].EndDate)
 
 		subscription2User2 := fixtureCreateSubscription(t, ctx, connection, userID2, serviseName2)
-		subscriptionsCosts, err := repoSubscription.AllMatchingSubscriptionsForPeriod(ctx, connection, userID2, serviseName2, now, pointer.Ref(newEndDate))
+		subscriptionsCosts, err := repoSubscription.AllMatchingSubscriptionsForPeriod(
+			ctx,
+			connection,
+			userID2,
+			serviseName2,
+			now,
+			pointer.Ref(newEndDate),
+		)
 		require.NoError(t, err)
 		require.Equal(t, subscription2User2.Cost, subscriptionsCosts[0])
 
@@ -65,7 +77,13 @@ func TestSubscriptionIntegration(t *testing.T) {
 	})
 }
 
-func fixtureCreateSubscription(t *testing.T, ctx context.Context, connection domain.Connection, userID domain.UserID, name domain.ServiceName) domain.Subscription {
+func fixtureCreateSubscription(
+	t *testing.T,
+	ctx context.Context,
+	connection domain.Connection,
+	userID domain.UserID,
+	name domain.ServiceName,
+) domain.Subscription {
 	subscription := domain.Subscription{
 		UserID:    userID,
 		Cost:      1,

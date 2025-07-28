@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"time"
 
 	"ef_project/internal/domain"
@@ -26,7 +27,13 @@ func NewSubscription() *Subscription {
 	return &Subscription{}
 }
 
-func (s *Subscription) Create(ctx context.Context, connection domain.Connection, subscription domain.Subscription) error {
+func (s *Subscription) Create(
+	ctx context.Context,
+	connection domain.Connection,
+	subscription domain.Subscription,
+) error {
+	slog.DebugContext(ctx, "Repository: creating subscribtion")
+
 	const query = ` insert into subscriptions
 	(service_name, month_cost, user_id, subs_start_date, subs_end_date)
 	values
@@ -39,7 +46,13 @@ func (s *Subscription) Create(ctx context.Context, connection domain.Connection,
 	return nil
 }
 
-func (s *Subscription) ReadAllByUserID(ctx context.Context, connection domain.Connection, subscriptionID domain.UserID) ([]domain.Subscription, error) {
+func (s *Subscription) ReadAllByUserID(
+	ctx context.Context,
+	connection domain.Connection,
+	subscriptionID domain.UserID,
+) ([]domain.Subscription, error) {
+	slog.DebugContext(ctx, "Repository: reading by user id")
+
 	const query = `select service_name, month_cost, user_id, subs_start_date, subs_end_date from subscriptions where user_id=$1`
 	var allUserSubscriptions []domain.Subscription
 	if err := connection.SelectContext(ctx, &allUserSubscriptions, query, subscriptionID); err != nil {
@@ -48,7 +61,13 @@ func (s *Subscription) ReadAllByUserID(ctx context.Context, connection domain.Co
 	return allUserSubscriptions, nil
 }
 
-func (s *Subscription) Update(ctx context.Context, connection domain.Connection, subscription domain.Subscription) error {
+func (s *Subscription) Update(
+	ctx context.Context,
+	connection domain.Connection,
+	subscription domain.Subscription,
+) error {
+	slog.DebugContext(ctx, "Repository: updating subscribtion")
+
 	const query = `update subscriptions set month_cost = $3, subs_end_date=$4  
 	where service_name = $1 and user_id = $2 
 	and subs_start_date = (select subs_start_date from subscriptions
@@ -61,7 +80,14 @@ func (s *Subscription) Update(ctx context.Context, connection domain.Connection,
 	return nil
 }
 
-func (s *Subscription) Delete(ctx context.Context, connection domain.Connection, subscriptionUserID domain.UserID, subscriptionName domain.ServiceName) error {
+func (s *Subscription) Delete(
+	ctx context.Context,
+	connection domain.Connection,
+	subscriptionUserID domain.UserID,
+	subscriptionName domain.ServiceName,
+) error {
+	slog.DebugContext(ctx, "Repository: deleting subscribtion")
+
 	const query = ` delete from subscriptions where user_id = $1 and service_name = $2 
 	and subs_start_date = (select subs_start_date from subscriptions where user_id = $1 and service_name = $2 order by subs_start_date desc limit 1)`
 	rowsAffected, err := connection.ExecContext(ctx, query, subscriptionUserID, subscriptionName)
@@ -74,7 +100,16 @@ func (s *Subscription) Delete(ctx context.Context, connection domain.Connection,
 	return nil
 }
 
-func (s *Subscription) AllMatchingSubscriptionsForPeriod(ctx context.Context, connection domain.Connection, subscriptionUserID domain.UserID, subscriptionName domain.ServiceName, start time.Time, end *time.Time) ([]int, error) {
+func (s *Subscription) AllMatchingSubscriptionsForPeriod(
+	ctx context.Context,
+	connection domain.Connection,
+	subscriptionUserID domain.UserID,
+	subscriptionName domain.ServiceName,
+	start time.Time,
+	end *time.Time,
+) ([]int, error) {
+	slog.DebugContext(ctx, "Repository: getting all matching subscribtions by period")
+
 	const query = `select month_cost from subscriptions where (user_id = $1) and (service_name = $2) and (subs_start_date < $3) and (subs_end_date IS NULL OR subs_end_date >= $4)`
 	var matchesSubscriptions []int
 	if err := connection.SelectContext(ctx, &matchesSubscriptions, query, subscriptionUserID, subscriptionName, end, start); err != nil {
@@ -83,7 +118,14 @@ func (s *Subscription) AllMatchingSubscriptionsForPeriod(ctx context.Context, co
 	return matchesSubscriptions, nil
 }
 
-func (s *Subscription) GetLatest(ctx context.Context, connection domain.Connection, userID domain.UserID, serviseName domain.ServiceName) (*time.Time, error) {
+func (s *Subscription) GetLatest(
+	ctx context.Context,
+	connection domain.Connection,
+	userID domain.UserID,
+	serviseName domain.ServiceName,
+) (*time.Time, error) {
+	slog.DebugContext(ctx, "Repository: getting getting latest subscription")
+
 	const query = `select (subs_end_date) from subscriptions
 	where user_id = $1 and service_name = $2 order by subs_start_date desc limit 1`
 	var latestDate *time.Time
