@@ -54,10 +54,24 @@ func NewSubscriptionService(
 	}
 }
 
+func (s *SubscriptionService) GetLatest(ctx context.Context, subscriptionUserID UserID) (Subscription, error) {
+	slog.DebugContext(ctx, "Service: getting latest subscribtion.", log.RequestID(ctx))
+	var subscription Subscription
+	var dbError error
+	err := s.provider.Execute(ctx, func(ctx context.Context, c Connection) error {
+		subscription , dbError = s.subscriptionRepo.GetLatest(ctx, c, subscriptionUserID)
+		return dbError
+	})
+	if err != nil {
+		return subscription, errors.Join(err, ErrServiceDeleteSubscription)
+	}
+	return subscription, nil
+}
+
 func (s *SubscriptionService) Create(ctx context.Context, subscription Subscription) error {
 	err := s.provider.ExecuteTx(ctx, func(ctx context.Context, c Connection) error {
 		slog.DebugContext(ctx, "Service: checking dates.", log.RequestID(ctx))
-		latestEndDate, err := s.subscriptionRepo.GetLatest(
+		latestEndDate, err := s.subscriptionRepo.GetLatestSubscriptionDate(
 			ctx,
 			c,
 			subscription.UserID,

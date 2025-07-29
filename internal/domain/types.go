@@ -35,6 +35,7 @@ type (
 		Create(context.Context, Subscription) error
 		Update(context.Context, Subscription) error
 		Delete(context.Context, UserID, ServiceName) error
+		GetLatest(context.Context, UserID) (Subscription, error)
 		ReadAllByUserID(context.Context, UserID) ([]Subscription, error)
 		TotalSubscriptionsCost(
 			context.Context,

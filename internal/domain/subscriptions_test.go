@@ -43,7 +43,7 @@ func TestServicePVZ_Create(t *testing.T) {
 					}).
 					Once()
 
-				repo.EXPECT().GetLatest(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+				repo.EXPECT().GetLatestSubscriptionDate(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 					Return(validSubscription.EndDate, nil).Once()
 				repo.EXPECT().Create(mock.Anything, mock.Anything, mock.Anything).
 					Return(nil).Once()
@@ -63,7 +63,7 @@ func TestServicePVZ_Create(t *testing.T) {
 					}).
 					Once()
 
-				repo.EXPECT().GetLatest(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+				repo.EXPECT().GetLatestSubscriptionDate(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 					Return(validSubscription.EndDate, nil).Once()
 				repo.EXPECT().Create(mock.Anything, mock.Anything, mock.Anything).
 					Return(errors.New("some error")).Once()
@@ -85,7 +85,7 @@ func TestServicePVZ_Create(t *testing.T) {
 					}).
 					Once()
 
-				repo.EXPECT().GetLatest(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+				repo.EXPECT().GetLatestSubscriptionDate(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 					Return(validSubscription.EndDate, errors.New("some error")).Once()
 			},
 			check: func(t *testing.T, err error) {
@@ -105,7 +105,7 @@ func TestServicePVZ_Create(t *testing.T) {
 					}).
 					Once()
 
-				repo.EXPECT().GetLatest(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+				repo.EXPECT().GetLatestSubscriptionDate(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 					Return(nil, nil).Once()
 			},
 			check: func(t *testing.T, err error) {

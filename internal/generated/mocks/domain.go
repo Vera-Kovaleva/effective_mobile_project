@@ -264,11 +264,83 @@ func (_c *MockSubscriptionsRepository_Delete_Call) RunAndReturn(run func(context
 }
 
 // GetLatest provides a mock function for the type MockSubscriptionsRepository
-func (_mock *MockSubscriptionsRepository) GetLatest(context1 context.Context, connection domain.Connection, v domain.UserID, v1 domain.ServiceName) (*time.Time, error) {
-	ret := _mock.Called(context1, connection, v, v1)
+func (_mock *MockSubscriptionsRepository) GetLatest(context1 context.Context, connection domain.Connection, v domain.UserID) (domain.Subscription, error) {
+	ret := _mock.Called(context1, connection, v)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetLatest")
+	}
+
+	var r0 domain.Subscription
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, domain.Connection, domain.UserID) (domain.Subscription, error)); ok {
+		return returnFunc(context1, connection, v)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, domain.Connection, domain.UserID) domain.Subscription); ok {
+		r0 = returnFunc(context1, connection, v)
+	} else {
+		r0 = ret.Get(0).(domain.Subscription)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, domain.Connection, domain.UserID) error); ok {
+		r1 = returnFunc(context1, connection, v)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockSubscriptionsRepository_GetLatest_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetLatest'
+type MockSubscriptionsRepository_GetLatest_Call struct {
+	*mock.Call
+}
+
+// GetLatest is a helper method to define mock.On call
+//   - context1 context.Context
+//   - connection domain.Connection
+//   - v domain.UserID
+func (_e *MockSubscriptionsRepository_Expecter) GetLatest(context1 interface{}, connection interface{}, v interface{}) *MockSubscriptionsRepository_GetLatest_Call {
+	return &MockSubscriptionsRepository_GetLatest_Call{Call: _e.mock.On("GetLatest", context1, connection, v)}
+}
+
+func (_c *MockSubscriptionsRepository_GetLatest_Call) Run(run func(context1 context.Context, connection domain.Connection, v domain.UserID)) *MockSubscriptionsRepository_GetLatest_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 domain.Connection
+		if args[1] != nil {
+			arg1 = args[1].(domain.Connection)
+		}
+		var arg2 domain.UserID
+		if args[2] != nil {
+			arg2 = args[2].(domain.UserID)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockSubscriptionsRepository_GetLatest_Call) Return(subscription domain.Subscription, err error) *MockSubscriptionsRepository_GetLatest_Call {
+	_c.Call.Return(subscription, err)
+	return _c
+}
+
+func (_c *MockSubscriptionsRepository_GetLatest_Call) RunAndReturn(run func(context1 context.Context, connection domain.Connection, v domain.UserID) (domain.Subscription, error)) *MockSubscriptionsRepository_GetLatest_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetLatestSubscriptionDate provides a mock function for the type MockSubscriptionsRepository
+func (_mock *MockSubscriptionsRepository) GetLatestSubscriptionDate(context1 context.Context, connection domain.Connection, v domain.UserID, v1 domain.ServiceName) (*time.Time, error) {
+	ret := _mock.Called(context1, connection, v, v1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetLatestSubscriptionDate")
 	}
 
 	var r0 *time.Time
@@ -291,21 +363,21 @@ func (_mock *MockSubscriptionsRepository) GetLatest(context1 context.Context, co
 	return r0, r1
 }
 
-// MockSubscriptionsRepository_GetLatest_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetLatest'
-type MockSubscriptionsRepository_GetLatest_Call struct {
+// MockSubscriptionsRepository_GetLatestSubscriptionDate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetLatestSubscriptionDate'
+type MockSubscriptionsRepository_GetLatestSubscriptionDate_Call struct {
 	*mock.Call
 }
 
-// GetLatest is a helper method to define mock.On call
+// GetLatestSubscriptionDate is a helper method to define mock.On call
 //   - context1 context.Context
 //   - connection domain.Connection
 //   - v domain.UserID
 //   - v1 domain.ServiceName
-func (_e *MockSubscriptionsRepository_Expecter) GetLatest(context1 interface{}, connection interface{}, v interface{}, v1 interface{}) *MockSubscriptionsRepository_GetLatest_Call {
-	return &MockSubscriptionsRepository_GetLatest_Call{Call: _e.mock.On("GetLatest", context1, connection, v, v1)}
+func (_e *MockSubscriptionsRepository_Expecter) GetLatestSubscriptionDate(context1 interface{}, connection interface{}, v interface{}, v1 interface{}) *MockSubscriptionsRepository_GetLatestSubscriptionDate_Call {
+	return &MockSubscriptionsRepository_GetLatestSubscriptionDate_Call{Call: _e.mock.On("GetLatestSubscriptionDate", context1, connection, v, v1)}
 }
 
-func (_c *MockSubscriptionsRepository_GetLatest_Call) Run(run func(context1 context.Context, connection domain.Connection, v domain.UserID, v1 domain.ServiceName)) *MockSubscriptionsRepository_GetLatest_Call {
+func (_c *MockSubscriptionsRepository_GetLatestSubscriptionDate_Call) Run(run func(context1 context.Context, connection domain.Connection, v domain.UserID, v1 domain.ServiceName)) *MockSubscriptionsRepository_GetLatestSubscriptionDate_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -333,12 +405,12 @@ func (_c *MockSubscriptionsRepository_GetLatest_Call) Run(run func(context1 cont
 	return _c
 }
 
-func (_c *MockSubscriptionsRepository_GetLatest_Call) Return(time1 *time.Time, err error) *MockSubscriptionsRepository_GetLatest_Call {
+func (_c *MockSubscriptionsRepository_GetLatestSubscriptionDate_Call) Return(time1 *time.Time, err error) *MockSubscriptionsRepository_GetLatestSubscriptionDate_Call {
 	_c.Call.Return(time1, err)
 	return _c
 }
 
-func (_c *MockSubscriptionsRepository_GetLatest_Call) RunAndReturn(run func(context1 context.Context, connection domain.Connection, v domain.UserID, v1 domain.ServiceName) (*time.Time, error)) *MockSubscriptionsRepository_GetLatest_Call {
+func (_c *MockSubscriptionsRepository_GetLatestSubscriptionDate_Call) RunAndReturn(run func(context1 context.Context, connection domain.Connection, v domain.UserID, v1 domain.ServiceName) (*time.Time, error)) *MockSubscriptionsRepository_GetLatestSubscriptionDate_Call {
 	_c.Call.Return(run)
 	return _c
 }

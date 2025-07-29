@@ -26,6 +26,74 @@ func NewServer(
 	}
 }
 
+func (s *Server) GetSubscriptions(ctx context.Context, request oapi.GetSubscriptionsRequestObject) (oapi.GetSubscriptionsResponseObject, error) {
+	slog.InfoContext(
+		ctx,
+		"Request to delete last subscription.",
+		slog.String("user_id", request.Params.Id.String()),
+		log.RequestID(ctx),
+	)
+
+	subscription, err := s.subscriptions.GetLatest(ctx, *request.Params.Id)
+	if err != nil {
+		slog.ErrorContext(
+			ctx,
+			"Subscriptions did not get. Failed to get subscription.",
+			log.ErrorAttr(err),
+			log.RequestID(ctx),
+		)
+		return oapi.GetSubscriptions400JSONResponse{
+			Message: "Неверный запрос",
+		}, nil
+	}
+
+	slog.InfoContext(ctx, "Subscription successfully deleted.", log.RequestID(ctx))
+
+	return oapi.GetSubscriptions200JSONResponse{
+		Id:        subscription.UserID,
+		Name:      subscription.Name,
+		Cost:      subscription.Cost,
+		DateEnd:   pointer.Ref(subscription.EndDate.Format("01-2006")),
+		DateStart: subscription.StartDate.Format("01-2006"),
+	}, nil
+}
+
+func (s *Server) GetAll(ctx context.Context, request oapi.GetAllRequestObject) (oapi.GetAllResponseObject, error) {
+	slog.InfoContext(
+		ctx,
+		"Request to get subscriptions by user id.",
+		slog.String("user_id", request.Params.Id.String()),
+		log.RequestID(ctx))
+
+	var respponse oapi.GetAll200JSONResponse
+	subscriptionsByUserID, err := s.subscriptions.ReadAllByUserID(ctx, *request.Params.Id)
+	if err != nil {
+		slog.ErrorContext(
+			ctx,
+			"Subscriptions did not get. Failed to get subscription.",
+			log.ErrorAttr(err),
+			log.RequestID(ctx),
+		)
+		return oapi.GetAll400JSONResponse{
+			Message: "Неверный запрос",
+		}, nil
+	}
+
+	for _, curSubscription := range subscriptionsByUserID {
+		respponse = append(respponse, oapi.Subscription{
+			Cost:      curSubscription.Cost,
+			DateStart: curSubscription.StartDate.Format("01-2006"),
+			DateEnd:   pointer.Ref(curSubscription.EndDate.Format("01-2006")),
+			Id:        curSubscription.UserID,
+			Name:      curSubscription.Name,
+		})
+	}
+
+	slog.InfoContext(ctx, "Subscriptions successfully got.", log.RequestID(ctx))
+
+	return respponse, nil
+}
+
 func (s *Server) DeleteSubscriptions(
 	ctx context.Context,
 	request oapi.DeleteSubscriptionsRequestObject,
@@ -56,45 +124,6 @@ func (s *Server) DeleteSubscriptions(
 	return oapi.DeleteSubscriptions200JSONResponse{
 		Message: "Подписка удалена",
 	}, nil
-}
-
-func (s *Server) GetSubscriptions(
-	ctx context.Context,
-	request oapi.GetSubscriptionsRequestObject,
-) (oapi.GetSubscriptionsResponseObject, error) {
-	slog.InfoContext(
-		ctx,
-		"Request to get subscriptions by user id.",
-		slog.String("user_id", request.Params.Id.String()),
-		log.RequestID(ctx))
-
-	var respponse oapi.GetSubscriptions200JSONResponse
-	subscriptionsByUserID, err := s.subscriptions.ReadAllByUserID(ctx, *request.Params.Id)
-	if err != nil {
-		slog.ErrorContext(
-			ctx,
-			"Subscriptions did not get. Failed to get subscription.",
-			log.ErrorAttr(err),
-			log.RequestID(ctx),
-		)
-		return oapi.GetSubscriptions400JSONResponse{
-			Message: "Неверный запрос",
-		}, nil
-	}
-
-	for _, curSubscription := range subscriptionsByUserID {
-		respponse = append(respponse, oapi.Subscription{
-			Cost:      curSubscription.Cost,
-			DateStart: curSubscription.StartDate.Format("01-2006"),
-			DateEnd:   pointer.Ref(curSubscription.EndDate.Format("01-2006")),
-			Id:        curSubscription.UserID,
-			Name:      curSubscription.Name,
-		})
-	}
-
-	slog.InfoContext(ctx, "Subscriptions successfully got.", log.RequestID(ctx))
-
-	return respponse, nil
 }
 
 func (s *Server) GetSubscriptionsTotalCost(

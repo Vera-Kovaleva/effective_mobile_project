@@ -51,13 +51,13 @@ func (s *Subscription) Create(
 func (s *Subscription) ReadAllByUserID(
 	ctx context.Context,
 	connection domain.Connection,
-	subscriptionID domain.UserID,
+	userID domain.UserID,
 ) ([]domain.Subscription, error) {
 	slog.DebugContext(ctx, "Repository: reading by user id", log.RequestID(ctx))
 
 	const query = `select service_name, month_cost, user_id, subs_start_date, subs_end_date from subscriptions where user_id=$1`
 	var allUserSubscriptions []domain.Subscription
-	if err := connection.SelectContext(ctx, &allUserSubscriptions, query, subscriptionID); err != nil {
+	if err := connection.SelectContext(ctx, &allUserSubscriptions, query, userID); err != nil {
 		return allUserSubscriptions, errors.Join(err, ErrReadSubscription)
 	}
 	return allUserSubscriptions, nil
@@ -102,6 +102,23 @@ func (s *Subscription) Delete(
 	return nil
 }
 
+// GetLatest implements domain.SubscriptionsRepository.
+func (s *Subscription) GetLatest(ctx context.Context, connection domain.Connection, userID domain.UserID) (domain.Subscription, error) {
+	slog.DebugContext(
+		ctx,
+		"Repository: getting last subscription.",
+		log.RequestID(ctx),
+	)
+	var latestSubs domain.Subscription
+	const query = `select service_name, month_cost, user_id, subs_start_date, subs_end_date from subscriptions
+	where user_id = $1 order by subs_start_date desc limit 1`
+
+	if err := connection.GetContext(ctx, &latestSubs, query, userID); err != nil {
+		return latestSubs, ErrGetLatestSubscription
+	}
+	return latestSubs, nil
+}
+
 func (s *Subscription) AllMatchingSubscriptionsForPeriod(
 	ctx context.Context,
 	connection domain.Connection,
@@ -124,7 +141,7 @@ func (s *Subscription) AllMatchingSubscriptionsForPeriod(
 	return matchesSubscriptions, nil
 }
 
-func (s *Subscription) GetLatest(
+func (s *Subscription) GetLatestSubscriptionDate(
 	ctx context.Context,
 	connection domain.Connection,
 	userID domain.UserID,
@@ -137,7 +154,7 @@ func (s *Subscription) GetLatest(
 	var latestDate *time.Time
 	if err := connection.GetContext(ctx, &latestDate, query, userID, serviceName); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil 
+			return nil, nil
 		}
 		return nil, ErrGetLatestSubscription
 	}

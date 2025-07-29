@@ -63,7 +63,7 @@ paths:
                 $ref: '#/components/schemas/MessageResponse'
 
     get:
-      summary: Получение списка подписок
+      summary: Получение последней подписки
       parameters:
         - name: id
           in: query
@@ -74,20 +74,17 @@ paths:
             format: uuid
       responses:
         '200':
-          description: Список подписок пользователя
+          description: Последняя подписка пользователя
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Subscription'
+                $ref: '#/components/schemas/Subscription'
         '400':
           description: Неверный запрос
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/MessageResponse'
-
     put:
       summary: Обновление подписки
       requestBody:
@@ -139,7 +136,33 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MessageResponse'
-                
+  /all:
+    get:
+      summary: Получение списка подписок
+      parameters:
+        - name: id
+          in: query
+          description: ID пользователя
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Список подписок пользователя
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Subscription'
+        '400':
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+              
   /subscriptions/total_cost:
     get:
       summary: Подсчёт суммарной стоимости подписок за период
