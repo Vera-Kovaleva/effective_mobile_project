@@ -101,15 +101,6 @@ func (s *Server) GetSubscriptionsTotalCost(
 	ctx context.Context,
 	request oapi.GetSubscriptionsTotalCostRequestObject,
 ) (oapi.GetSubscriptionsTotalCostResponseObject, error) {
-	slog.InfoContext(
-		ctx,
-		"Request to calculate total cost.",
-		slog.String("user_id", request.Params.Id.String()),
-		slog.String("start_period_date", request.Params.StartDate),
-		slog.String("end_period_date", request.Params.EndDate),
-		log.RequestID(ctx),
-	)
-
 	startDate, err := time.Parse("01-2006", request.Params.StartDate)
 	if err != nil {
 		slog.ErrorContext(ctx, "Invalid start date format.", log.ErrorAttr(err), log.RequestID(ctx))
@@ -124,6 +115,15 @@ func (s *Server) GetSubscriptionsTotalCost(
 			Message: "Неверный формат даты окончания",
 		}, nil
 	}
+	slog.InfoContext(
+		ctx,
+		"Request to calculate total cost.",
+		slog.String("user_id", request.Params.Id.String()),
+		slog.String("start_period_date", request.Params.StartDate),
+		slog.String("end_period_date", request.Params.EndDate),
+		log.RequestID(ctx),
+	)
+
 	totalCost, err := s.subscriptions.TotalSubscriptionsCost(
 		ctx,
 		*request.Params.Id,
@@ -159,16 +159,6 @@ func (s *Server) PostSubscriptions(
 	ctx context.Context,
 	request oapi.PostSubscriptionsRequestObject,
 ) (oapi.PostSubscriptionsResponseObject, error) {
-	slog.InfoContext(ctx, "Request to create subscription.",
-		slog.String("user_id", request.Body.Id.String()),
-		slog.String("start_period_date", request.Body.Name),
-		slog.String("start_period_date", request.Body.Name),
-		slog.String("start_period_date", strconv.Itoa(request.Body.Cost)),
-		slog.String("start_period_date", request.Body.DateStart),
-		slog.String("end_period_date", *request.Body.DateEnd),
-		log.RequestID(ctx),
-	)
-
 	startDate, err := time.Parse("01-2006", request.Body.DateStart)
 	if err != nil {
 		slog.ErrorContext(ctx, "Invalid start date format.", log.ErrorAttr(err), log.RequestID(ctx))
@@ -191,7 +181,17 @@ func (s *Server) PostSubscriptions(
 			}, nil
 		}
 		endDate = &parsedEndDate
+	} else {
+		endDate = pointer.Ref(time.Date(9999, 12, 31, 23, 59, 59, 999999999, time.UTC))
 	}
+	slog.InfoContext(ctx, "Request to create subscription.",
+		slog.String("user_id", request.Body.Id.String()),
+		slog.String("service_name", request.Body.Name),
+		slog.String("service_cost", strconv.Itoa(request.Body.Cost)),
+		slog.String("start_period_date", request.Body.DateStart),
+		slog.String("end_period_date", endDate.String()),
+		log.RequestID(ctx),
+	)
 	err = s.subscriptions.Create(ctx, domain.Subscription{
 		Name:      request.Body.Name,
 		Cost:      request.Body.Cost,
@@ -219,16 +219,6 @@ func (s *Server) PutSubscriptions(
 	ctx context.Context,
 	request oapi.PutSubscriptionsRequestObject,
 ) (oapi.PutSubscriptionsResponseObject, error) {
-	slog.InfoContext(ctx, "Request to update subscription.",
-		slog.String("user_id", request.Body.Id.String()),
-		slog.String("start_period_date", request.Body.Name),
-		slog.String("start_period_date", request.Body.Name),
-		slog.String("start_period_date", strconv.Itoa(request.Body.Cost)),
-		slog.String("start_period_date", request.Body.DateStart),
-		slog.String("end_period_date", *request.Body.DateEnd),
-		log.RequestID(ctx),
-	)
-
 	startDate, err := time.Parse("01-2006", request.Body.DateStart)
 	if err != nil {
 		slog.ErrorContext(ctx, "Invalid start date format.", log.ErrorAttr(err), log.RequestID(ctx))
@@ -251,7 +241,18 @@ func (s *Server) PutSubscriptions(
 			}, nil
 		}
 		endDate = &parsedEndDate
+	} else {
+		endDate = pointer.Ref(time.Date(9999, 12, 31, 23, 59, 59, 999999999, time.UTC))
 	}
+	slog.InfoContext(ctx, "Request to update subscription.",
+		slog.String("user_id", request.Body.Id.String()),
+		slog.String("service_name", request.Body.Name),
+		slog.String("service_cost", strconv.Itoa(request.Body.Cost)),
+		slog.String("start_period_date", request.Body.DateStart),
+		slog.String("end_period_date", endDate.String()),
+		log.RequestID(ctx),
+	)
+
 	err = s.subscriptions.Update(ctx, domain.Subscription{
 		Name:      request.Body.Name,
 		Cost:      request.Body.Cost,

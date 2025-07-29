@@ -3,7 +3,7 @@ dir: internal/generated/mocks
 pkgname: mocks
 all: true
 packages:
-  effective_mobile_project/internal/domain:
+  ef_project/internal/domain:
     config:
       recursive: true
       filename: domain.go

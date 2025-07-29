@@ -17,6 +17,10 @@ var (
 		errServiseSubscription,
 		errors.New("create failed"),
 	)
+	ErrGetLatestSubscriptionDate = errors.Join(
+		errServiseSubscription,
+		errors.New("get latest date failed"),
+	)
 	ErrServiceUpdateSubscription = errors.Join(
 		errServiseSubscription,
 		errors.New("update failed"),
@@ -60,7 +64,7 @@ func (s *SubscriptionService) Create(ctx context.Context, subscription Subscript
 			subscription.Name,
 		)
 		if err != nil {
-			return errors.Join(err, ErrServiceCreateSubscription)
+			return errors.Join(err, ErrGetLatestSubscriptionDate)
 		}
 		if latestEndDate != nil && (latestEndDate.After(subscription.StartDate)) {
 			return errors.Join(

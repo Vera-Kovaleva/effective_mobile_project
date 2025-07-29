@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"log/slog"
 	"time"
@@ -127,15 +128,18 @@ func (s *Subscription) GetLatest(
 	ctx context.Context,
 	connection domain.Connection,
 	userID domain.UserID,
-	serviseName domain.ServiceName,
+	serviceName domain.ServiceName,
 ) (*time.Time, error) {
 	slog.DebugContext(ctx, "Repository: getting getting latest subscription.", log.RequestID(ctx))
 
 	const query = `select (subs_end_date) from subscriptions
 	where user_id = $1 and service_name = $2 order by subs_start_date desc limit 1`
 	var latestDate *time.Time
-	if err := connection.GetContext(ctx, &latestDate, query, userID, serviseName); err != nil {
-		return nil, nil
+	if err := connection.GetContext(ctx, &latestDate, query, userID, serviceName); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil 
+		}
+		return nil, ErrGetLatestSubscription
 	}
 	return latestDate, nil
 }
