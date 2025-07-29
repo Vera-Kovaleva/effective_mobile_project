@@ -22,6 +22,7 @@ import (
 	oapi "ef_project/internal/generated/oapi"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	strictgin "github.com/oapi-codegen/runtime/strictmiddleware/gin"
@@ -81,6 +82,8 @@ func Run(ctx context.Context) int {
 	middlewares := []oapi.StrictMiddlewareFunc{
 		func(f strictgin.StrictGinHandlerFunc, _ string) strictgin.StrictGinHandlerFunc {
 			return func(ctx *gin.Context, request any) (any, error) {
+				log.SetRequestID(ctx, uuid.NewString())
+
 				return f(ctx, request)
 			}
 		},

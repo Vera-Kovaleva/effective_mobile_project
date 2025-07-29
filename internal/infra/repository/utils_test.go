@@ -15,7 +15,7 @@ import (
 )
 
 func cleanTablesAndCreateProvider(ctx context.Context, t *testing.T) domain.ConnectionProvider {
-	godotenv.Load("../../../.env")
+	_ = godotenv.Load("../../../.env")
 
 	tablesToClean := []string{"subscriptions"}
 

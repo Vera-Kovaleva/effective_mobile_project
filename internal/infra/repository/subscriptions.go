@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"ef_project/internal/domain"
+	"ef_project/internal/infra/log"
 )
 
 var _ domain.SubscriptionsRepository = (*Subscription)(nil)
@@ -32,7 +33,7 @@ func (s *Subscription) Create(
 	connection domain.Connection,
 	subscription domain.Subscription,
 ) error {
-	slog.DebugContext(ctx, "Repository: creating subscribtion")
+	slog.DebugContext(ctx, "Repository: creating subscription", log.RequestID(ctx))
 
 	const query = ` insert into subscriptions
 	(service_name, month_cost, user_id, subs_start_date, subs_end_date)
@@ -51,7 +52,7 @@ func (s *Subscription) ReadAllByUserID(
 	connection domain.Connection,
 	subscriptionID domain.UserID,
 ) ([]domain.Subscription, error) {
-	slog.DebugContext(ctx, "Repository: reading by user id")
+	slog.DebugContext(ctx, "Repository: reading by user id", log.RequestID(ctx))
 
 	const query = `select service_name, month_cost, user_id, subs_start_date, subs_end_date from subscriptions where user_id=$1`
 	var allUserSubscriptions []domain.Subscription
@@ -66,7 +67,7 @@ func (s *Subscription) Update(
 	connection domain.Connection,
 	subscription domain.Subscription,
 ) error {
-	slog.DebugContext(ctx, "Repository: updating subscribtion")
+	slog.DebugContext(ctx, "Repository: updating subscription.", log.RequestID(ctx))
 
 	const query = `update subscriptions set month_cost = $3, subs_end_date=$4  
 	where service_name = $1 and user_id = $2 
@@ -86,7 +87,7 @@ func (s *Subscription) Delete(
 	subscriptionUserID domain.UserID,
 	subscriptionName domain.ServiceName,
 ) error {
-	slog.DebugContext(ctx, "Repository: deleting subscribtion")
+	slog.DebugContext(ctx, "Repository: deleting subscription.", log.RequestID(ctx))
 
 	const query = ` delete from subscriptions where user_id = $1 and service_name = $2 
 	and subs_start_date = (select subs_start_date from subscriptions where user_id = $1 and service_name = $2 order by subs_start_date desc limit 1)`
@@ -108,7 +109,11 @@ func (s *Subscription) AllMatchingSubscriptionsForPeriod(
 	start time.Time,
 	end *time.Time,
 ) ([]int, error) {
-	slog.DebugContext(ctx, "Repository: getting all matching subscribtions by period")
+	slog.DebugContext(
+		ctx,
+		"Repository: getting all matching subscriptions by period.",
+		log.RequestID(ctx),
+	)
 
 	const query = `select month_cost from subscriptions where (user_id = $1) and (service_name = $2) and (subs_start_date < $3) and (subs_end_date IS NULL OR subs_end_date >= $4)`
 	var matchesSubscriptions []int
@@ -124,7 +129,7 @@ func (s *Subscription) GetLatest(
 	userID domain.UserID,
 	serviseName domain.ServiceName,
 ) (*time.Time, error) {
-	slog.DebugContext(ctx, "Repository: getting getting latest subscription")
+	slog.DebugContext(ctx, "Repository: getting getting latest subscription.", log.RequestID(ctx))
 
 	const query = `select (subs_end_date) from subscriptions
 	where user_id = $1 and service_name = $2 order by subs_start_date desc limit 1`

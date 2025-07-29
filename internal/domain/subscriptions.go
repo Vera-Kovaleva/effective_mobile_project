@@ -5,6 +5,8 @@ import (
 	"errors"
 	"log/slog"
 	"time"
+
+	"ef_project/internal/infra/log"
 )
 
 var _ SubscriptionInterface = (*SubscriptionService)(nil)
@@ -50,7 +52,7 @@ func NewSubscriptionService(
 
 func (s *SubscriptionService) Create(ctx context.Context, subscription Subscription) error {
 	err := s.provider.ExecuteTx(ctx, func(ctx context.Context, c Connection) error {
-		slog.DebugContext(ctx, "Service: checking dates")
+		slog.DebugContext(ctx, "Service: checking dates.", log.RequestID(ctx))
 		latestEndDate, err := s.subscriptionRepo.GetLatest(
 			ctx,
 			c,
@@ -61,22 +63,15 @@ func (s *SubscriptionService) Create(ctx context.Context, subscription Subscript
 			return errors.Join(err, ErrServiceCreateSubscription)
 		}
 		if latestEndDate != nil && (latestEndDate.After(subscription.StartDate)) {
-			slog.ErrorContext(
-				ctx,
-				"Previous subscription has not ended",
-				"error:",
-				ErrServiceCreateSubscription,
-			)
 			return errors.Join(
 				errors.New("previous subscription has not ended"),
 				ErrServiceCreateSubscription,
 			)
 		}
-		slog.DebugContext(ctx, "Service: creating subscription")
+		slog.DebugContext(ctx, "Service: creating subscription.", log.RequestID(ctx))
 		return s.subscriptionRepo.Create(ctx, c, subscription)
 	})
 	if err != nil {
-		slog.ErrorContext(ctx, "DB error", "error:", err)
 		return errors.Join(err, ErrServiceCreateSubscription)
 	}
 	return nil
@@ -87,24 +82,22 @@ func (s *SubscriptionService) Delete(
 	subscriptionUserID UserID,
 	subscriptionName ServiceName,
 ) error {
-	slog.DebugContext(ctx, "Service: deleting subscribtion")
+	slog.DebugContext(ctx, "Service: deleting subscribtion.", log.RequestID(ctx))
 	err := s.provider.Execute(ctx, func(ctx context.Context, c Connection) error {
 		return s.subscriptionRepo.Delete(ctx, c, subscriptionUserID, subscriptionName)
 	})
 	if err != nil {
-		slog.ErrorContext(ctx, "DB error", "error:", err)
 		return errors.Join(err, ErrServiceDeleteSubscription)
 	}
 	return nil
 }
 
 func (s *SubscriptionService) Update(ctx context.Context, subscription Subscription) error {
-	slog.DebugContext(ctx, "Service: updating subscribtion")
+	slog.DebugContext(ctx, "Service: updating subscribtion.", log.RequestID(ctx))
 	err := s.provider.Execute(ctx, func(ctx context.Context, c Connection) error {
 		return s.subscriptionRepo.Update(ctx, c, subscription)
 	})
 	if err != nil {
-		slog.ErrorContext(ctx, "DB error", "error:", err)
 		return errors.Join(err, ErrServiceUpdateSubscription)
 	}
 	return nil
@@ -114,7 +107,7 @@ func (s *SubscriptionService) ReadAllByUserID(
 	ctx context.Context,
 	subscriptionUserID UserID,
 ) ([]Subscription, error) {
-	slog.DebugContext(ctx, "Service: reading subscribtions by user ID")
+	slog.DebugContext(ctx, "Service: reading subscribtions by user ID.", log.RequestID(ctx))
 	var subscriptions []Subscription
 	var dbErr error
 	err := s.provider.Execute(ctx, func(ctx context.Context, c Connection) error {
@@ -122,7 +115,6 @@ func (s *SubscriptionService) ReadAllByUserID(
 		return dbErr
 	})
 	if err != nil {
-		slog.ErrorContext(ctx, "DB error", "error:", err)
 		return subscriptions, errors.Join(err, ErrServiceReadAllByUserIDList)
 	}
 	return subscriptions, nil
@@ -135,7 +127,7 @@ func (s *SubscriptionService) TotalSubscriptionsCost(
 	start time.Time,
 	end *time.Time,
 ) (int, error) {
-	slog.DebugContext(ctx, "Service: calculating total cost")
+	slog.DebugContext(ctx, "Service: calculating total cost.", log.RequestID(ctx))
 	var totalCosts []int
 	var dbErr error
 	err := s.provider.Execute(ctx, func(ctx context.Context, c Connection) error {
@@ -151,7 +143,6 @@ func (s *SubscriptionService) TotalSubscriptionsCost(
 	})
 	totalCost := 0
 	if err != nil {
-		slog.ErrorContext(ctx, "DB error", "error:", err)
 		return totalCost, errors.Join(err, ErrServiceTotalSubscriptionsCostList)
 	}
 	for _, curCost := range totalCosts {

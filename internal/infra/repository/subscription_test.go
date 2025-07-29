@@ -19,7 +19,7 @@ func TestSubscriptionIntegration(t *testing.T) {
 	provider := cleanTablesAndCreateProvider(ctx, t)
 	defer func() { _ = provider.Close() }()
 
-	provider.ExecuteTx(ctx, func(ctx context.Context, connection domain.Connection) error {
+	err := provider.ExecuteTx(ctx, func(ctx context.Context, connection domain.Connection) error {
 		userID1 := domain.UserID(uuid.New())
 		userID2 := domain.UserID(uuid.New())
 
@@ -43,6 +43,7 @@ func TestSubscriptionIntegration(t *testing.T) {
 		require.Equal(t, subscription1User1, subscriptionsFromDBUser1[0])
 
 		err = repoSubscription.Delete(ctx, connection, userID1, serviseName1)
+		require.NoError(t, err)
 
 		subscriptionsFromDBUser1, err = repoSubscription.ReadAllByUserID(ctx, connection, userID1)
 		require.NoError(t, err)
@@ -52,6 +53,7 @@ func TestSubscriptionIntegration(t *testing.T) {
 		newEndDate := now.AddDate(0, 1, 0).UTC().Truncate(24 * time.Hour)
 		subscription1User2.EndDate = pointer.Ref(newEndDate)
 		err = repoSubscription.Update(ctx, connection, subscription1User2)
+		require.NoError(t, err)
 
 		subscriptionsFromDBUser2, err = repoSubscription.ReadAllByUserID(
 			ctx,
@@ -75,6 +77,9 @@ func TestSubscriptionIntegration(t *testing.T) {
 
 		return nil
 	})
+
+	require.NoError(t, err)
+
 }
 
 func fixtureCreateSubscription(
