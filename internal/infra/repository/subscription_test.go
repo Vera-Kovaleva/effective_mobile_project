@@ -83,7 +83,6 @@ func TestSubscriptionIntegration(t *testing.T) {
 	})
 
 	require.NoError(t, err)
-
 }
 
 func TestListsUnit(t *testing.T) {
@@ -122,7 +121,12 @@ func TestListsUnit(t *testing.T) {
 					Return(0, errors.New("some error")).
 					Once()
 
-				err := repo.Delete(ctx, connection, validSubscription.UserID, validSubscription.Name)
+				err := repo.Delete(
+					ctx,
+					connection,
+					validSubscription.UserID,
+					validSubscription.Name,
+				)
 
 				require.ErrorIs(t, err, repository.ErrDeleteSubscription)
 				require.ErrorContains(t, err, "some error")

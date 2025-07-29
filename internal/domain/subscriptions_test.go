@@ -43,8 +43,10 @@ func TestServicePVZ_Create(t *testing.T) {
 					}).
 					Once()
 
-				repo.EXPECT().GetLatestSubscriptionDate(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
-					Return(validSubscription.EndDate, nil).Once()
+				repo.EXPECT().
+					GetLatestSubscriptionDate(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Return(validSubscription.EndDate, nil).
+					Once()
 				repo.EXPECT().Create(mock.Anything, mock.Anything, mock.Anything).
 					Return(nil).Once()
 			},
@@ -63,8 +65,10 @@ func TestServicePVZ_Create(t *testing.T) {
 					}).
 					Once()
 
-				repo.EXPECT().GetLatestSubscriptionDate(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
-					Return(validSubscription.EndDate, nil).Once()
+				repo.EXPECT().
+					GetLatestSubscriptionDate(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Return(validSubscription.EndDate, nil).
+					Once()
 				repo.EXPECT().Create(mock.Anything, mock.Anything, mock.Anything).
 					Return(errors.New("some error")).Once()
 			},
@@ -85,8 +89,10 @@ func TestServicePVZ_Create(t *testing.T) {
 					}).
 					Once()
 
-				repo.EXPECT().GetLatestSubscriptionDate(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
-					Return(validSubscription.EndDate, errors.New("some error")).Once()
+				repo.EXPECT().
+					GetLatestSubscriptionDate(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Return(validSubscription.EndDate, errors.New("some error")).
+					Once()
 			},
 			check: func(t *testing.T, err error) {
 				require.Error(t, err)
@@ -105,8 +111,10 @@ func TestServicePVZ_Create(t *testing.T) {
 					}).
 					Once()
 
-				repo.EXPECT().GetLatestSubscriptionDate(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
-					Return(nil, nil).Once()
+				repo.EXPECT().
+					GetLatestSubscriptionDate(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Return(nil, nil).
+					Once()
 			},
 			check: func(t *testing.T, err error) {
 				require.Error(t, err)
@@ -126,7 +134,8 @@ func TestServicePVZ_Create(t *testing.T) {
 			if test.prepareMocks != nil {
 				test.prepareMocks(provider, repoSunbscriptions)
 			}
-			err := domain.NewSubscriptionService(provider, repoSunbscriptions).Create(t.Context(), validSubscription)
+			err := domain.NewSubscriptionService(provider, repoSunbscriptions).
+				Create(t.Context(), validSubscription)
 
 			test.check(t, err)
 		})

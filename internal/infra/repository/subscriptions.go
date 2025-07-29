@@ -102,8 +102,11 @@ func (s *Subscription) Delete(
 	return nil
 }
 
-// GetLatest implements domain.SubscriptionsRepository.
-func (s *Subscription) GetLatest(ctx context.Context, connection domain.Connection, userID domain.UserID) (domain.Subscription, error) {
+func (s *Subscription) GetLatest(
+	ctx context.Context,
+	connection domain.Connection,
+	userID domain.UserID,
+) (domain.Subscription, error) {
 	slog.DebugContext(
 		ctx,
 		"Repository: getting last subscription.",

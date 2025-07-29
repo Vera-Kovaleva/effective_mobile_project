@@ -54,12 +54,15 @@ func NewSubscriptionService(
 	}
 }
 
-func (s *SubscriptionService) GetLatest(ctx context.Context, subscriptionUserID UserID) (Subscription, error) {
+func (s *SubscriptionService) GetLatest(
+	ctx context.Context,
+	subscriptionUserID UserID,
+) (Subscription, error) {
 	slog.DebugContext(ctx, "Service: getting latest subscribtion.", log.RequestID(ctx))
 	var subscription Subscription
 	var dbError error
 	err := s.provider.Execute(ctx, func(ctx context.Context, c Connection) error {
-		subscription , dbError = s.subscriptionRepo.GetLatest(ctx, c, subscriptionUserID)
+		subscription, dbError = s.subscriptionRepo.GetLatest(ctx, c, subscriptionUserID)
 		return dbError
 	})
 	if err != nil {

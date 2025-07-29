@@ -26,10 +26,13 @@ func NewServer(
 	}
 }
 
-func (s *Server) GetSubscriptions(ctx context.Context, request oapi.GetSubscriptionsRequestObject) (oapi.GetSubscriptionsResponseObject, error) {
+func (s *Server) GetSubscriptions(
+	ctx context.Context,
+	request oapi.GetSubscriptionsRequestObject,
+) (oapi.GetSubscriptionsResponseObject, error) {
 	slog.InfoContext(
 		ctx,
-		"Request to delete last subscription.",
+		"Request to get last subscription.",
 		slog.String("user_id", request.Params.Id.String()),
 		log.RequestID(ctx),
 	)
@@ -58,7 +61,10 @@ func (s *Server) GetSubscriptions(ctx context.Context, request oapi.GetSubscript
 	}, nil
 }
 
-func (s *Server) GetAll(ctx context.Context, request oapi.GetAllRequestObject) (oapi.GetAllResponseObject, error) {
+func (s *Server) GetAll(
+	ctx context.Context,
+	request oapi.GetAllRequestObject,
+) (oapi.GetAllResponseObject, error) {
 	slog.InfoContext(
 		ctx,
 		"Request to get subscriptions by user id.",
