@@ -18,22 +18,19 @@ import (
 )
 
 func TestSubscriptionIntegration(t *testing.T) {
-	ctx := context.Background()
-	repoSubscription := repository.NewSubscription()
-	provider := cleanTablesAndCreateProvider(ctx, t)
-	defer func() { _ = provider.Close() }()
+	rollback(t, func(ctx context.Context, connection domain.Connection) {
+		repoSubscription := repository.NewSubscription()
 
-	err := provider.ExecuteTx(ctx, func(ctx context.Context, connection domain.Connection) error {
-		userID1 := domain.UserID(uuid.New())
-		userID2 := domain.UserID(uuid.New())
+		userID1 := uuid.New()
+		userID2 := uuid.New()
 
 		serviseName1 := domain.ServiceName("servise name 1")
 		serviseName2 := domain.ServiceName("servise name 2")
 
-		subscription1User1 := fixtureCreateSubscription(t, ctx, connection, userID1, serviseName1)
-		_ = fixtureCreateSubscription(t, ctx, connection, userID1, serviseName2)
+		subscription1User1 := fixtureCreateSubscription(t, connection, userID1, serviseName1)
+		_ = fixtureCreateSubscription(t, connection, userID1, serviseName2)
 
-		subscription1User2 := fixtureCreateSubscription(t, ctx, connection, userID2, serviseName1)
+		subscription1User2 := fixtureCreateSubscription(t, connection, userID2, serviseName1)
 
 		subscriptionsFromDBUser1, err := repoSubscription.ReadAllByUserID(ctx, connection, userID1)
 		require.NoError(t, err)
@@ -67,7 +64,7 @@ func TestSubscriptionIntegration(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, pointer.Ref(newEndDate), subscriptionsFromDBUser2[0].EndDate)
 
-		subscription2User2 := fixtureCreateSubscription(t, ctx, connection, userID2, serviseName2)
+		subscription2User2 := fixtureCreateSubscription(t, connection, userID2, serviseName2)
 		subscriptionsCosts, err := repoSubscription.AllMatchingSubscriptionsForPeriod(
 			ctx,
 			connection,
@@ -78,11 +75,7 @@ func TestSubscriptionIntegration(t *testing.T) {
 		)
 		require.NoError(t, err)
 		require.Equal(t, subscription2User2.Cost, subscriptionsCosts[0])
-
-		return nil
 	})
-
-	require.NoError(t, err)
 }
 
 func TestListsUnit(t *testing.T) {
@@ -156,7 +149,7 @@ func TestListsUnit(t *testing.T) {
 
 				_, err := repo.ReadAllByUserID(ctx, connection, validSubscription.UserID)
 
-				require.ErrorIs(t, err, repository.ErrReadSubscription)
+				require.ErrorIs(t, err, repository.ErrReadAllSubscriptions)
 				require.ErrorContains(t, err, "some error")
 			},
 		},
@@ -170,7 +163,6 @@ func TestListsUnit(t *testing.T) {
 
 func fixtureCreateSubscription(
 	t *testing.T,
-	ctx context.Context,
 	connection domain.Connection,
 	userID domain.UserID,
 	name domain.ServiceName,
@@ -181,7 +173,7 @@ func fixtureCreateSubscription(
 		Name:      name,
 		StartDate: time.Now().UTC().Truncate(24 * time.Hour),
 	}
-	require.NoError(t, repository.NewSubscription().Create(ctx, connection, subscription))
+	require.NoError(t, repository.NewSubscription().Create(t.Context(), connection, subscription))
 
 	return subscription
 }

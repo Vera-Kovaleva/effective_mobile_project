@@ -13,11 +13,11 @@ type (
 	ServiceName = string
 
 	Subscription struct {
-		Name      ServiceName `json:"name"               db:"service_name"`
-		Cost      int         `json:"cost"               db:"month_cost"`
-		UserID    UserID      `json:"id"                 db:"user_id"`
-		StartDate time.Time   `json:"start_date"         db:"subs_start_date"`
-		EndDate   *time.Time  `json:"end_date,omitempty" db:"subs_end_date"`
+		Name      ServiceName `db:"service_name"`
+		Cost      int         `db:"month_cost"`
+		UserID    UserID      `db:"user_id"`
+		StartDate time.Time   `db:"subs_start_date"`
+		EndDate   *time.Time  `db:"subs_end_date"`
 	}
 
 	Connection interface {
@@ -44,6 +44,5 @@ type (
 			time.Time,
 			*time.Time,
 		) (int, error)
-		io.Closer
 	}
 )

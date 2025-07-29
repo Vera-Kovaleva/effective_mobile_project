@@ -34,15 +34,6 @@ type (
 	}
 )
 
-func (p *PostgresProvider) Close() error {
-	p.pool.Close()
-	p.pool = nil
-	p.connFactory = nil
-	p.txFactory = nil
-
-	return nil
-}
-
 func NewPostgresProvider(pool *pgxpool.Pool, options ...PostgresProviderOption) *PostgresProvider {
 	provider := &PostgresProvider{
 		pool:        pool,
@@ -119,6 +110,15 @@ func (p *PostgresProvider) acquire(
 	return f(ctx, conn)
 }
 
+func (p *PostgresProvider) Close() error {
+	p.pool.Close()
+	p.pool = nil
+	p.connFactory = nil
+	p.txFactory = nil
+
+	return nil
+}
+
 func NewPostgresConnection(connection *pgxpool.Conn) *PostgresConnection {
 	return &PostgresConnection{connection: connection}
 }
@@ -128,11 +128,12 @@ func (p *PostgresConnection) ExecContext(
 	query string,
 	args ...any,
 ) (int64, error) {
-	if cmdTag, err := p.connection.Exec(ctx, query, args...); err != nil {
+	cmdTag, err := p.connection.Exec(ctx, query, args...)
+	if err != nil {
 		return 0, err
-	} else {
-		return cmdTag.RowsAffected(), nil
 	}
+
+	return cmdTag.RowsAffected(), nil
 }
 
 func (p *PostgresConnection) GetContext(
@@ -162,11 +163,12 @@ func (p *PostgresTransaction) ExecContext(
 	query string,
 	args ...any,
 ) (int64, error) {
-	if cmdTag, err := p.transaction.Exec(ctx, query, args...); err != nil {
+	cmdTag, err := p.transaction.Exec(ctx, query, args...)
+	if err != nil {
 		return 0, err
-	} else {
-		return cmdTag.RowsAffected(), nil
 	}
+
+	return cmdTag.RowsAffected(), nil
 }
 
 func (p *PostgresTransaction) GetContext(

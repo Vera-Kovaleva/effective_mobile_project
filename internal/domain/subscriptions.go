@@ -17,9 +17,9 @@ var (
 		errServiseSubscription,
 		errors.New("create failed"),
 	)
-	ErrGetLatestSubscriptionDate = errors.Join(
+	ErrGetLatestSubscription = errors.Join(
 		errServiseSubscription,
-		errors.New("get latest date failed"),
+		errors.New("get latest subscription failed"),
 	)
 	ErrServiceUpdateSubscription = errors.Join(
 		errServiseSubscription,
@@ -60,20 +60,20 @@ func (s *SubscriptionService) GetLatest(
 ) (Subscription, error) {
 	slog.DebugContext(ctx, "Service: getting latest subscribtion.", log.RequestID(ctx))
 	var subscription Subscription
-	var dbError error
 	err := s.provider.Execute(ctx, func(ctx context.Context, c Connection) error {
+		var dbError error
 		subscription, dbError = s.subscriptionRepo.GetLatest(ctx, c, subscriptionUserID)
 		return dbError
 	})
 	if err != nil {
-		return subscription, errors.Join(err, ErrServiceDeleteSubscription)
+		return subscription, errors.Join(ErrServiceDeleteSubscription, err)
 	}
 	return subscription, nil
 }
 
 func (s *SubscriptionService) Create(ctx context.Context, subscription Subscription) error {
+	slog.DebugContext(ctx, "Service: creating subscription.", log.RequestID(ctx))
 	err := s.provider.ExecuteTx(ctx, func(ctx context.Context, c Connection) error {
-		slog.DebugContext(ctx, "Service: checking dates.", log.RequestID(ctx))
 		latestEndDate, err := s.subscriptionRepo.GetLatestSubscriptionDate(
 			ctx,
 			c,
@@ -81,19 +81,18 @@ func (s *SubscriptionService) Create(ctx context.Context, subscription Subscript
 			subscription.Name,
 		)
 		if err != nil {
-			return errors.Join(err, ErrGetLatestSubscriptionDate)
+			return errors.Join(ErrGetLatestSubscription, err)
 		}
 		if latestEndDate != nil && (latestEndDate.After(subscription.StartDate)) {
 			return errors.Join(
-				errors.New("previous subscription has not ended"),
 				ErrServiceCreateSubscription,
-			)
+				errors.New("previous subscription has not ended"))
 		}
-		slog.DebugContext(ctx, "Service: creating subscription.", log.RequestID(ctx))
+
 		return s.subscriptionRepo.Create(ctx, c, subscription)
 	})
 	if err != nil {
-		return errors.Join(err, ErrServiceCreateSubscription)
+		return errors.Join(ErrServiceCreateSubscription, err)
 	}
 	return nil
 }
@@ -108,7 +107,7 @@ func (s *SubscriptionService) Delete(
 		return s.subscriptionRepo.Delete(ctx, c, subscriptionUserID, subscriptionName)
 	})
 	if err != nil {
-		return errors.Join(err, ErrServiceDeleteSubscription)
+		return errors.Join(ErrServiceDeleteSubscription, err)
 	}
 	return nil
 }
@@ -119,7 +118,7 @@ func (s *SubscriptionService) Update(ctx context.Context, subscription Subscript
 		return s.subscriptionRepo.Update(ctx, c, subscription)
 	})
 	if err != nil {
-		return errors.Join(err, ErrServiceUpdateSubscription)
+		return errors.Join(ErrServiceUpdateSubscription, err)
 	}
 	return nil
 }
@@ -130,13 +129,13 @@ func (s *SubscriptionService) ReadAllByUserID(
 ) ([]Subscription, error) {
 	slog.DebugContext(ctx, "Service: reading subscribtions by user ID.", log.RequestID(ctx))
 	var subscriptions []Subscription
-	var dbErr error
 	err := s.provider.Execute(ctx, func(ctx context.Context, c Connection) error {
+		var dbErr error
 		subscriptions, dbErr = s.subscriptionRepo.ReadAllByUserID(ctx, c, subscriptionUserID)
 		return dbErr
 	})
 	if err != nil {
-		return subscriptions, errors.Join(err, ErrServiceReadAllByUserIDList)
+		return subscriptions, errors.Join(ErrServiceReadAllByUserIDList, err)
 	}
 	return subscriptions, nil
 }
@@ -148,10 +147,10 @@ func (s *SubscriptionService) TotalSubscriptionsCost(
 	start time.Time,
 	end *time.Time,
 ) (int, error) {
-	slog.DebugContext(ctx, "Service: calculating total cost.", log.RequestID(ctx))
 	var totalCosts []int
-	var dbErr error
 	err := s.provider.Execute(ctx, func(ctx context.Context, c Connection) error {
+		slog.DebugContext(ctx, "Service: calculating total cost.", log.RequestID(ctx))
+		var dbErr error
 		totalCosts, dbErr = s.subscriptionRepo.AllMatchingSubscriptionsForPeriod(
 			ctx,
 			c,
@@ -164,14 +163,10 @@ func (s *SubscriptionService) TotalSubscriptionsCost(
 	})
 	totalCost := 0
 	if err != nil {
-		return totalCost, errors.Join(err, ErrServiceTotalSubscriptionsCostList)
+		return totalCost, errors.Join(ErrServiceTotalSubscriptionsCostList, err)
 	}
 	for _, curCost := range totalCosts {
 		totalCost += curCost
 	}
 	return totalCost, nil
-}
-
-func (s *SubscriptionService) Close() error {
-	return s.provider.Close()
 }

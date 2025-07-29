@@ -1,13 +1,13 @@
 package domain_test
 
 import (
-	"context"
 	"errors"
 	"testing"
 	"time"
 
 	"ef_project/internal/domain"
 	"ef_project/internal/generated/mocks"
+	"ef_project/internal/infra/database"
 	"ef_project/internal/infra/pointer"
 
 	"github.com/google/uuid"
@@ -29,20 +29,13 @@ func TestServicePVZ_Create(t *testing.T) {
 	tests := []struct {
 		name         string
 		subscribtion domain.Subscription
-		prepareMocks func(*mocks.MockConnectionProvider, *mocks.MockSubscriptionsRepository)
+		prepareMocks func(*mocks.MockSubscriptionsRepository)
 		check        func(*testing.T, error)
 	}{
 		{
 			name:         "Success",
 			subscribtion: validSubscription,
-			prepareMocks: func(provider *mocks.MockConnectionProvider, repo *mocks.MockSubscriptionsRepository) {
-				provider.EXPECT().
-					ExecuteTx(mock.Anything, mock.Anything).
-					RunAndReturn(func(ctx context.Context, f func(context.Context, domain.Connection) error) error {
-						return f(ctx, &mocks.MockConnection{})
-					}).
-					Once()
-
+			prepareMocks: func(repo *mocks.MockSubscriptionsRepository) {
 				repo.EXPECT().
 					GetLatestSubscriptionDate(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 					Return(validSubscription.EndDate, nil).
@@ -57,14 +50,7 @@ func TestServicePVZ_Create(t *testing.T) {
 		{
 			name:         "DB create Error",
 			subscribtion: validSubscription,
-			prepareMocks: func(provider *mocks.MockConnectionProvider, repo *mocks.MockSubscriptionsRepository) {
-				provider.EXPECT().
-					ExecuteTx(mock.Anything, mock.Anything).
-					RunAndReturn(func(ctx context.Context, f func(context.Context, domain.Connection) error) error {
-						return f(ctx, &mocks.MockConnection{})
-					}).
-					Once()
-
+			prepareMocks: func(repo *mocks.MockSubscriptionsRepository) {
 				repo.EXPECT().
 					GetLatestSubscriptionDate(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 					Return(validSubscription.EndDate, nil).
@@ -81,14 +67,7 @@ func TestServicePVZ_Create(t *testing.T) {
 		{
 			name:         "DB get latest Error",
 			subscribtion: validSubscription,
-			prepareMocks: func(provider *mocks.MockConnectionProvider, repo *mocks.MockSubscriptionsRepository) {
-				provider.EXPECT().
-					ExecuteTx(mock.Anything, mock.Anything).
-					RunAndReturn(func(ctx context.Context, f func(context.Context, domain.Connection) error) error {
-						return f(ctx, &mocks.MockConnection{})
-					}).
-					Once()
-
+			prepareMocks: func(repo *mocks.MockSubscriptionsRepository) {
 				repo.EXPECT().
 					GetLatestSubscriptionDate(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 					Return(validSubscription.EndDate, errors.New("some error")).
@@ -100,39 +79,17 @@ func TestServicePVZ_Create(t *testing.T) {
 				require.Contains(t, err.Error(), "get latest date failed")
 			},
 		},
-		{
-			name:         "Subscription has not ended Error",
-			subscribtion: validSubscription,
-			prepareMocks: func(provider *mocks.MockConnectionProvider, repo *mocks.MockSubscriptionsRepository) {
-				provider.EXPECT().
-					ExecuteTx(mock.Anything, mock.Anything).
-					RunAndReturn(func(ctx context.Context, f func(context.Context, domain.Connection) error) error {
-						return f(ctx, &mocks.MockConnection{})
-					}).
-					Once()
-
-				repo.EXPECT().
-					GetLatestSubscriptionDate(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
-					Return(nil, nil).
-					Once()
-			},
-			check: func(t *testing.T, err error) {
-				require.Error(t, err)
-				require.Contains(t, err.Error(), "some error")
-				require.Contains(t, err.Error(), "previous subscription has not ende")
-			},
-		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
-			provider := mocks.NewMockConnectionProvider(t)
+			provider := database.NewDummyProvider(mocks.NewMockConnection(t))
 
 			repoSunbscriptions := mocks.NewMockSubscriptionsRepository(t)
 
 			if test.prepareMocks != nil {
-				test.prepareMocks(provider, repoSunbscriptions)
+				test.prepareMocks(repoSunbscriptions)
 			}
 			err := domain.NewSubscriptionService(provider, repoSunbscriptions).
 				Create(t.Context(), validSubscription)

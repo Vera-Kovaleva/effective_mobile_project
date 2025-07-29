@@ -15,7 +15,7 @@ import (
 
 	"ef_project/internal/domain"
 
-	"ef_project/internal/adapters/database"
+	"ef_project/internal/infra/database"
 	"ef_project/internal/infra/repository"
 
 	httpapi "ef_project/internal/adapters/http"

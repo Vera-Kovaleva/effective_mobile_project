@@ -3,7 +3,6 @@ package http
 import (
 	"context"
 	"log/slog"
-	"strconv"
 	"time"
 
 	"ef_project/internal/domain"
@@ -33,8 +32,7 @@ func (s *Server) GetSubscriptions(
 	slog.InfoContext(
 		ctx,
 		"Request to get last subscription.",
-		slog.String("user_id", request.Params.Id.String()),
-		log.RequestID(ctx),
+		log.RequestID(ctx), slog.Any("request", request),
 	)
 
 	subscription, err := s.subscriptions.GetLatest(ctx, *request.Params.Id)
@@ -50,15 +48,22 @@ func (s *Server) GetSubscriptions(
 		}, nil
 	}
 
-	slog.InfoContext(ctx, "Subscription successfully deleted.", log.RequestID(ctx))
-
-	return oapi.GetSubscriptions200JSONResponse{
+	response := oapi.GetSubscriptions200JSONResponse{
 		Id:        subscription.UserID,
 		Name:      subscription.Name,
 		Cost:      subscription.Cost,
 		DateEnd:   pointer.Ref(subscription.EndDate.Format("01-2006")),
 		DateStart: subscription.StartDate.Format("01-2006"),
-	}, nil
+	}
+
+	slog.InfoContext(
+		ctx,
+		"Subscription successfully read.",
+		log.RequestID(ctx),
+		slog.Any("response", response),
+	)
+
+	return response, nil
 }
 
 func (s *Server) GetAll(
@@ -68,10 +73,10 @@ func (s *Server) GetAll(
 	slog.InfoContext(
 		ctx,
 		"Request to get subscriptions by user id.",
-		slog.String("user_id", request.Params.Id.String()),
-		log.RequestID(ctx))
+		log.RequestID(ctx), slog.Any("request", request),
+	)
 
-	var respponse oapi.GetAll200JSONResponse
+	var response oapi.GetAll200JSONResponse
 	subscriptionsByUserID, err := s.subscriptions.ReadAllByUserID(ctx, *request.Params.Id)
 	if err != nil {
 		slog.ErrorContext(
@@ -86,7 +91,7 @@ func (s *Server) GetAll(
 	}
 
 	for _, curSubscription := range subscriptionsByUserID {
-		respponse = append(respponse, oapi.Subscription{
+		response = append(response, oapi.Subscription{
 			Cost:      curSubscription.Cost,
 			DateStart: curSubscription.StartDate.Format("01-2006"),
 			DateEnd:   pointer.Ref(curSubscription.EndDate.Format("01-2006")),
@@ -95,9 +100,14 @@ func (s *Server) GetAll(
 		})
 	}
 
-	slog.InfoContext(ctx, "Subscriptions successfully got.", log.RequestID(ctx))
+	slog.InfoContext(
+		ctx,
+		"Subscriptions successfully got.",
+		log.RequestID(ctx),
+		slog.Any("response", response),
+	)
 
-	return respponse, nil
+	return response, nil
 }
 
 func (s *Server) DeleteSubscriptions(
@@ -107,9 +117,7 @@ func (s *Server) DeleteSubscriptions(
 	slog.InfoContext(
 		ctx,
 		"Request to delete last subscription.",
-		slog.String("user_id", request.Params.Id.String()),
-		slog.String("service_name", request.Params.Name),
-		log.RequestID(ctx),
+		log.RequestID(ctx), slog.Any("request", request),
 	)
 
 	err := s.subscriptions.Delete(ctx, request.Params.Id, request.Params.Name)
@@ -136,6 +144,12 @@ func (s *Server) GetSubscriptionsTotalCost(
 	ctx context.Context,
 	request oapi.GetSubscriptionsTotalCostRequestObject,
 ) (oapi.GetSubscriptionsTotalCostResponseObject, error) {
+	slog.InfoContext(
+		ctx,
+		"Request to calculate total cost.",
+		log.RequestID(ctx), slog.Any("request", request),
+	)
+
 	startDate, err := time.Parse("01-2006", request.Params.StartDate)
 	if err != nil {
 		slog.ErrorContext(ctx, "Invalid start date format.", log.ErrorAttr(err), log.RequestID(ctx))
@@ -150,15 +164,6 @@ func (s *Server) GetSubscriptionsTotalCost(
 			Message: "Неверный формат даты окончания",
 		}, nil
 	}
-	slog.InfoContext(
-		ctx,
-		"Request to calculate total cost.",
-		slog.String("user_id", request.Params.Id.String()),
-		slog.String("start_period_date", request.Params.StartDate),
-		slog.String("end_period_date", request.Params.EndDate),
-		log.RequestID(ctx),
-	)
-
 	totalCost, err := s.subscriptions.TotalSubscriptionsCost(
 		ctx,
 		*request.Params.Id,
@@ -179,21 +184,30 @@ func (s *Server) GetSubscriptionsTotalCost(
 		}, nil
 	}
 
+	response := oapi.GetSubscriptionsTotalCost200JSONResponse{
+		TotalCost: totalCost,
+	}
+
 	slog.InfoContext(
 		ctx,
 		"Total cost successfully calculated.",
-		slog.String("total_cost", strconv.Itoa(totalCost)),
-		log.RequestID(ctx),
+		log.RequestID(ctx), slog.Any("response", response),
 	)
-	return oapi.GetSubscriptionsTotalCost200JSONResponse{
-		TotalCost: totalCost,
-	}, nil
+
+	return response, nil
 }
 
+//nolint:dupl  // Same same but different.
 func (s *Server) PostSubscriptions(
 	ctx context.Context,
 	request oapi.PostSubscriptionsRequestObject,
 ) (oapi.PostSubscriptionsResponseObject, error) {
+	slog.InfoContext(
+		ctx,
+		"Request to create subscription.",
+		log.RequestID(ctx), slog.Any("request", request),
+	)
+
 	startDate, err := time.Parse("01-2006", request.Body.DateStart)
 	if err != nil {
 		slog.ErrorContext(ctx, "Invalid start date format.", log.ErrorAttr(err), log.RequestID(ctx))
@@ -203,12 +217,12 @@ func (s *Server) PostSubscriptions(
 	}
 	var endDate *time.Time
 	if request.Body.DateEnd != nil {
-		parsedEndDate, err := time.Parse("01-2006", *request.Body.DateEnd)
-		if err != nil {
+		parsedEndDate, err2 := time.Parse("01-2006", *request.Body.DateEnd)
+		if err2 != nil {
 			slog.ErrorContext(
 				ctx,
 				"Invalid end date format.",
-				log.ErrorAttr(err),
+				log.ErrorAttr(err2),
 				log.RequestID(ctx),
 			)
 			return oapi.PostSubscriptions400JSONResponse{
@@ -219,14 +233,6 @@ func (s *Server) PostSubscriptions(
 	} else {
 		endDate = pointer.Ref(time.Date(9999, 12, 31, 23, 59, 59, 999999999, time.UTC))
 	}
-	slog.InfoContext(ctx, "Request to create subscription.",
-		slog.String("user_id", request.Body.Id.String()),
-		slog.String("service_name", request.Body.Name),
-		slog.String("service_cost", strconv.Itoa(request.Body.Cost)),
-		slog.String("start_period_date", request.Body.DateStart),
-		slog.String("end_period_date", endDate.String()),
-		log.RequestID(ctx),
-	)
 	err = s.subscriptions.Create(ctx, domain.Subscription{
 		Name:      request.Body.Name,
 		Cost:      request.Body.Cost,
@@ -250,10 +256,17 @@ func (s *Server) PostSubscriptions(
 	}, nil
 }
 
+//nolint:dupl  // Same same but different.
 func (s *Server) PutSubscriptions(
 	ctx context.Context,
 	request oapi.PutSubscriptionsRequestObject,
 ) (oapi.PutSubscriptionsResponseObject, error) {
+	slog.InfoContext(
+		ctx,
+		"Request to update subscription.",
+		log.RequestID(ctx), slog.Any("request", request),
+	)
+
 	startDate, err := time.Parse("01-2006", request.Body.DateStart)
 	if err != nil {
 		slog.ErrorContext(ctx, "Invalid start date format.", log.ErrorAttr(err), log.RequestID(ctx))
@@ -263,12 +276,12 @@ func (s *Server) PutSubscriptions(
 	}
 	var endDate *time.Time
 	if request.Body.DateEnd != nil {
-		parsedEndDate, err := time.Parse("01-2006", *request.Body.DateEnd)
-		if err != nil {
+		parsedEndDate, err2 := time.Parse("01-2006", *request.Body.DateEnd)
+		if err2 != nil {
 			slog.ErrorContext(
 				ctx,
 				"Invalid end date format.",
-				log.ErrorAttr(err),
+				log.ErrorAttr(err2),
 				log.RequestID(ctx),
 			)
 			return oapi.PutSubscriptions400JSONResponse{
@@ -279,14 +292,6 @@ func (s *Server) PutSubscriptions(
 	} else {
 		endDate = pointer.Ref(time.Date(9999, 12, 31, 23, 59, 59, 999999999, time.UTC))
 	}
-	slog.InfoContext(ctx, "Request to update subscription.",
-		slog.String("user_id", request.Body.Id.String()),
-		slog.String("service_name", request.Body.Name),
-		slog.String("service_cost", strconv.Itoa(request.Body.Cost)),
-		slog.String("start_period_date", request.Body.DateStart),
-		slog.String("end_period_date", endDate.String()),
-		log.RequestID(ctx),
-	)
 
 	err = s.subscriptions.Update(ctx, domain.Subscription{
 		Name:      request.Body.Name,

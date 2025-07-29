@@ -1028,50 +1028,6 @@ func (_m *MockSubscriptionInterface) EXPECT() *MockSubscriptionInterface_Expecte
 	return &MockSubscriptionInterface_Expecter{mock: &_m.Mock}
 }
 
-// Close provides a mock function for the type MockSubscriptionInterface
-func (_mock *MockSubscriptionInterface) Close() error {
-	ret := _mock.Called()
-
-	if len(ret) == 0 {
-		panic("no return value specified for Close")
-	}
-
-	var r0 error
-	if returnFunc, ok := ret.Get(0).(func() error); ok {
-		r0 = returnFunc()
-	} else {
-		r0 = ret.Error(0)
-	}
-	return r0
-}
-
-// MockSubscriptionInterface_Close_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Close'
-type MockSubscriptionInterface_Close_Call struct {
-	*mock.Call
-}
-
-// Close is a helper method to define mock.On call
-func (_e *MockSubscriptionInterface_Expecter) Close() *MockSubscriptionInterface_Close_Call {
-	return &MockSubscriptionInterface_Close_Call{Call: _e.mock.On("Close")}
-}
-
-func (_c *MockSubscriptionInterface_Close_Call) Run(run func()) *MockSubscriptionInterface_Close_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *MockSubscriptionInterface_Close_Call) Return(err error) *MockSubscriptionInterface_Close_Call {
-	_c.Call.Return(err)
-	return _c
-}
-
-func (_c *MockSubscriptionInterface_Close_Call) RunAndReturn(run func() error) *MockSubscriptionInterface_Close_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Create provides a mock function for the type MockSubscriptionInterface
 func (_mock *MockSubscriptionInterface) Create(context1 context.Context, subscription domain.Subscription) error {
 	ret := _mock.Called(context1, subscription)
@@ -1188,6 +1144,72 @@ func (_c *MockSubscriptionInterface_Delete_Call) Return(err error) *MockSubscrip
 }
 
 func (_c *MockSubscriptionInterface_Delete_Call) RunAndReturn(run func(context1 context.Context, v domain.UserID, v1 domain.ServiceName) error) *MockSubscriptionInterface_Delete_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetLatest provides a mock function for the type MockSubscriptionInterface
+func (_mock *MockSubscriptionInterface) GetLatest(context1 context.Context, v domain.UserID) (domain.Subscription, error) {
+	ret := _mock.Called(context1, v)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetLatest")
+	}
+
+	var r0 domain.Subscription
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, domain.UserID) (domain.Subscription, error)); ok {
+		return returnFunc(context1, v)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, domain.UserID) domain.Subscription); ok {
+		r0 = returnFunc(context1, v)
+	} else {
+		r0 = ret.Get(0).(domain.Subscription)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, domain.UserID) error); ok {
+		r1 = returnFunc(context1, v)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockSubscriptionInterface_GetLatest_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetLatest'
+type MockSubscriptionInterface_GetLatest_Call struct {
+	*mock.Call
+}
+
+// GetLatest is a helper method to define mock.On call
+//   - context1 context.Context
+//   - v domain.UserID
+func (_e *MockSubscriptionInterface_Expecter) GetLatest(context1 interface{}, v interface{}) *MockSubscriptionInterface_GetLatest_Call {
+	return &MockSubscriptionInterface_GetLatest_Call{Call: _e.mock.On("GetLatest", context1, v)}
+}
+
+func (_c *MockSubscriptionInterface_GetLatest_Call) Run(run func(context1 context.Context, v domain.UserID)) *MockSubscriptionInterface_GetLatest_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 domain.UserID
+		if args[1] != nil {
+			arg1 = args[1].(domain.UserID)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockSubscriptionInterface_GetLatest_Call) Return(subscription domain.Subscription, err error) *MockSubscriptionInterface_GetLatest_Call {
+	_c.Call.Return(subscription, err)
+	return _c
+}
+
+func (_c *MockSubscriptionInterface_GetLatest_Call) RunAndReturn(run func(context1 context.Context, v domain.UserID) (domain.Subscription, error)) *MockSubscriptionInterface_GetLatest_Call {
 	_c.Call.Return(run)
 	return _c
 }
